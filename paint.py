@@ -37,3 +37,24 @@ def build_font(config):
     Construct a complete font from the configuration options
     To be continued
     """
+    font = config['font']
+    font.setPointSize(config['fontsize'])
+    font.setBold(config['bold'])
+    font.setItalic(config['italic'])
+    font.setUnderline(config['underline'])
+    return font 
+
+class Canvas(QLabel):
+    mode = 'rectangle'
+
+    primary_color = QColor(Qt.black)
+    secondary_color = None 
+
+    primary_color_updated = pyqtSignal(str)
+    secondary_color_updated = pyqtSignal(str)
+
+    def initalize(self):
+        self.background_color = QColor(self.secondary_color) if self.secondary_color else QColor(Qt.white)
+        self.eraser_color = QColor(self.secondary_color) if self.secondary_color else QColor(Qt.white)
+        self.eraser_color.setAlpha(100)
+        self.reset()
