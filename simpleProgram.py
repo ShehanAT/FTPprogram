@@ -8,6 +8,7 @@ Author: Jan Bodnar
 import sys 
 from PyQt5.QtWidgets import QApplication, QWidget 
 from PyQt5.QtCore import *
+
 if __name__ == '__main__':
     #app = QApplication(sys.argv)
 
@@ -17,15 +18,32 @@ if __name__ == '__main__':
    # w.setWindowTitle('Whatever I want')
    # w.show()
 
-    x = str("apple")
-    b = "Fu\u00dfb\u00e4lle"
-    fruit = ["Apple", "Hawthorn", "Loquat", "Medlar", "Pear", "Quince"]
-    fruit2 = ["Apple", "Hawthorn", "Loquat", "Medlar", "Pear", "Quince"]
-    carriage = fruit 
-    carriage[2] = 'Shehan' # shallow copying 
-    print(fruit, carriage)
-    carriage = fruit2[:]
-    carriage[2] = 'Shehan' # deep copying
-    print(fruit2, carriage)
-    y = QDate()
+  
+
+    one = [9, 36, 16, 25, 4, 1]
+    two = dict(india=9, golf=17, juliet=5, foxtrot=61, hotel=8)
+    three = {11: "lima", 13: "kilo", 12: "mike"}
+    two[100] = "Shehan"
+
+    now = QDate.currentDate()
+    never = QDate()
+    print(bool(now), bool(never)) # bool(never) returns false
+   # print(v1, v2)
+    
+    # Python uses indentation to signify its block structure
+    # 4 spaces are recommended for indentation
+    x = 5
+    if x == 5:
+        pass # do nothing in this case
+    if x == 5: pass # this format is also valid
+    # whenever a colon is used the next statement can be on the same line
+    # there is no built-in switch/case statements in Python
+
+    print("x is zero or positive" if x >= 0 else "x is negetive")
+    # This is Python's ternary operator 
+
+    for char in "aeiou":
+        print("%s=%d" % (char, ord(char))) # ord(char) prints ascii character
+
+    # semi colons are not used in python, newlines are the statement seperators 
     #sys.exit(app.exec_())
