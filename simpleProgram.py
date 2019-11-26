@@ -80,4 +80,19 @@ if __name__ == '__main__':
     # Python does not allow a default argument parameter to be preceded by 
     # a normal parameter, so ```frange(start=0.5, stop)``` is illegal 
     # Python does not allow overloaded functions  
-    print(simplify(" this    and \n that\t too"))
+    # print(simplify(" this    and \n that\t too"))
+
+    def valid(text, chars=""):
+        result = ""
+        if chars == "":
+            # no second argument passed, return first character of text
+            return text[0]
+        else:
+            for j in text:
+                for i in chars:
+                    if i == j:
+                        result += i 
+        return result  
+    print(valid("Barking!"))
+    print(valid("KL754", "0123456789"))
+    print(valid("BEAN", "abcdefghijklmnopqrstuvwxyz"))
