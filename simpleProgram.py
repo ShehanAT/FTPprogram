@@ -93,6 +93,28 @@ if __name__ == '__main__':
                     if i == j:
                         result += i 
         return result  
-    print(valid("Barking!"))
-    print(valid("KL754", "0123456789"))
-    print(valid("BEAN", "abcdefghijklmnopqrstuvwxyz"))
+    # print(valid("Barking!"))
+    # print(valid("KL754", "0123456789"))
+    # print(valid("BEAN", "abcdefghijklmnopqrstuvwxyz"))
+
+    def charcount(text):
+        contents = {"whitespace": 0, "others": 0}
+        for i in range(97, 123):
+            # prepopulate the dict with the full alphabet of letter, each set to 0
+            contents[str(chr(i))] = 0
+        for i in text:
+            if ord(i) == 32:
+                # char is whitespace 
+                contents["whitespace"] += 1
+            elif ord(i) >= 97 and ord(i) <= 122:
+                # char is a lower case letter
+                contents[i] +=  1 # if leter not in dict then added it to dict and set to 1, else increment by 1 
+            elif ord(i) >= 65 and ord(i) <= 90:
+                contents[i.lower()] += 1
+            else:
+                print(i)
+                contents["others"] += 1
+        return contents 
+
+    # print(charcount("Hello World"))
+    print(charcount("Exceedingly Edible"))
