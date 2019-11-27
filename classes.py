@@ -33,17 +33,36 @@ class Rectangle(object):
 
     def area(self):
         return self.getWidth() * self.getHeight()
-class Trapezoid(object):
-    def __init__(self, width, height):
-        self.width = width 
-        self.height = height 
 
-    def _area(self):
-        return self.width * self.height 
-    def getArea(self):
-        return self.area 
+    def __lt__(self, other):
+        return self.area() < other.area()
     
-    area = property(fget=_area)
-trap1 = Trapezoid(20, 34)
-rect1 = Rectangle(20, 40)
-print(trap1.getArea())
+    def __eq__(self, other):
+        return self.area() == other.area()
+
+    def __gt__(self, other):
+        return self.area() > other.area()
+    def __repl__(self):# not working 
+        return "Rectangle(%d, %d)" % (self.width, self.height)
+
+class Balloon(object):
+    unique_colors = set() 
+
+    def __init__(self, color):
+        self.color = color 
+        Balloon.unique_colors.add(color)
+    @staticmethod
+    def uniqueColorCount():
+        return len(Balloon.unique_colors)
+    
+    @staticmethod
+    def uniqueColors():
+        return Balloon.unique_colors.copy()
+
+rect1 = Rectangle(10, 40)
+rect2 = Rectangle(20, 40)
+rect3 = Rectangle(0, 0)
+print(rect1 > rect2)
+print(rect1 == rect2)
+print(rect1 < rect2)
+print(rect1)
