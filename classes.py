@@ -4,7 +4,7 @@
 # modules that begin with an underscore are treated as private 
 # modules that begin with double underscores are treated as super private(which means the Python interpreter managles their names)
 
-
+from __future__ import division
 class Table(object):
     """ This class represents tables"""
     def __init__(self, name, legs=4):
@@ -59,10 +59,38 @@ class Balloon(object):
     def uniqueColors():
         return Balloon.unique_colors.copy()
 
+
+class Length(object):
+    
+    def __init__(self, length=None):
+        if length is None:
+            self.__amount = 0.0 
+        else:
+            digits = ""
+            for i, char in enumerate(length)
+                if char in Length.numbers:
+                    digits += char 
+                else: 
+                    self__amount = float(digits)
+                    unit = length[i:]
+
+TBC
+
+    convert = dict(mi=621.371e-6, miles=621.371e-6, mile=621.371e-6, 
+                   yd=1.094, yards=1.094, yard=1.094,
+                   ft=3.281, feet=3.281, foot=3.281,
+                   inches=39.37, inch=39.37,
+                   mm=1000, millimeter=1000, millimeters=1000,
+                   cm=100, centimeter=100, centimeters=100,
+                   centimetre=100, centrimetres=100,
+                   m=1.0, meter=1.0, meters=1.0, metre=1.0, metres=1.0,
+                   km=0.001, kilometer=0.001, kilometers=0.001, 
+                   kilometre=0.001, kilometres=0.001)
+    convert["in"] = 24.54 
+    numbers = frozenset("0123456.eE")
+
+
 rect1 = Rectangle(10, 40)
 rect2 = Rectangle(20, 40)
 rect3 = Rectangle(0, 0)
-print(rect1 > rect2)
-print(rect1 == rect2)
-print(rect1 < rect2)
-print(rect1)
+print(Length.convert)
