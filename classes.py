@@ -61,21 +61,33 @@ class Balloon(object):
 
 
 class Length(object):
-    
+    # self.__amount will always be in metres
     def __init__(self, length=None):
         if length is None:
             self.__amount = 0.0 
         else:
             digits = ""
-            for i, char in enumerate(length)
+            for i, char in enumerate(length):
                 if char in Length.numbers:
                     digits += char 
                 else: 
-                    self__amount = float(digits)
-                    unit = length[i:]
+                    self.__amount = float(digits)
+                    unit = length[i:].strip().lower()
+                    break 
+            else:
+                raise ValueError("Need an Amount and a Unit")
+            self.__amount /= Length.convert[unit] # converts all foreign units to metres 
 
-TBC
+    def copy(self):
+        import copy 
+        return copy.copy(self)
 
+    def __repr__(self):
+        return "Length('%.6fm')" % self.__amount
+    
+    def __add__(self, other):
+        return Length("%fm" % (self.__amount + other.__amount))
+    # This dictionary is used to convert all foreign units to metres
     convert = dict(mi=621.371e-6, miles=621.371e-6, mile=621.371e-6, 
                    yd=1.094, yards=1.094, yard=1.094,
                    ft=3.281, feet=3.281, foot=3.281,
@@ -93,4 +105,11 @@ TBC
 rect1 = Rectangle(10, 40)
 rect2 = Rectangle(20, 40)
 rect3 = Rectangle(0, 0)
-print(Length.convert)
+len1 = Length("2 km")
+len2 = Length("3 km")
+print("This is the length of len1 in metres:")
+print(len1)
+print("This is the length of len2 in metres:")
+print(len2)
+print("This is the length of len1 + len2 in metres:")
+print(len1 + len2)
