@@ -87,6 +87,16 @@ class Length(object):
     
     def __add__(self, other):
         return Length("%fm" % (self.__amount + other.__amount))
+
+    def __mul__(self, other):
+        if isinstance(other, Length):
+            raise ValueError("Length * Length produces an area not a length!")
+        else:
+            return Length("%fm" % (self.__amount * other))
+
+    def __float__(self):
+        return self.__amount
+
     # This dictionary is used to convert all foreign units to metres
     convert = dict(mi=621.371e-6, miles=621.371e-6, mile=621.371e-6, 
                    yd=1.094, yards=1.094, yard=1.094,
@@ -107,9 +117,16 @@ rect2 = Rectangle(20, 40)
 rect3 = Rectangle(0, 0)
 len1 = Length("2 km")
 len2 = Length("3 km")
-print("This is the length of len1 in metres:")
-print(len1)
-print("This is the length of len2 in metres:")
-print(len2)
-print("This is the length of len1 + len2 in metres:")
-print(len1 + len2)
+len3 = Length("30 ft")
+len4 = Length("250 cm")
+# print("This is the length of len1 in metres:")
+# print(len1)
+# print("This is the length of len2 in metres:")
+# print(len2)
+# print("This is the length of len1 + len2 in metres:")
+# print(len1 + len2)
+# print("This is the length of len3 + len4 in metres:")
+# print(len3 + len4)
+# print("This is the length of len3 * len4 in metres:")
+print(len3 * len4)
+# print(len4)
