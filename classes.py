@@ -76,6 +76,7 @@ class Length(object):
                     break 
             else:
                 raise ValueError("Need an Amount and a Unit")
+            print(unit)
             self.__amount /= Length.convert[unit] # converts all foreign units to metres 
 
     def copy(self):
@@ -92,10 +93,13 @@ class Length(object):
         if isinstance(other, Length):
             raise ValueError("Length * Length produces an area not a length!")
         else:
-            return Length("%fm" % (self.__amount * other))
+            return "Length('%.6fm')" % (self.__amount * other)
 
     def __float__(self):
         return self.__amount
+
+    def __int__(self):
+        return int(round(self.__amount))
 
     # This dictionary is used to convert all foreign units to metres
     convert = dict(mi=621.371e-6, miles=621.371e-6, mile=621.371e-6, 
@@ -128,5 +132,6 @@ len4 = Length("250 cm")
 # print("This is the length of len3 + len4 in metres:")
 # print(len3 + len4)
 # print("This is the length of len3 * len4 in metres:")
-print(len3 * len4)
+
+print(len3 * 4)
 # print(len4)
