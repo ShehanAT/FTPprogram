@@ -12,3 +12,9 @@ class OrderedDict(object):
             else:
                 self.__dict = dict(dictionary).copy() # convert to dictionary then copy 
                 self.__keys = sorted(self.__dict.keys())
+            
+    def getAt(self, index):
+        return self.__dict[self.__keys[index]] # get the value at the passed index, where index is a numerical value 
+
+    def setAt(self, index, newValue):
+        self.__dict[self.__keys[index]] = newValue # sets new value at the passed index 
