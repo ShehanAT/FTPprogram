@@ -24,6 +24,12 @@ class OrderedDict(object):
 
     def __setitem__(self, key, value):
         if key not in self.__dict:
-            bisect.insort_left(self.__keys, key) # inserts the passed key into self.__keys list while preserving the order of self.__keys 
+            bisect.insort_left(self.__keys, key) # inserts the passed key into self.__keys list while preserving the order of self.__keys, this uses a binary chop so performance is excellent  
         else:
             self.__dict[key] = value 
+
+    def __delitem__(self, key):
+        i = bisect.bisect_left(self.__keys, key)
+        del self.__keys[i] # delete the i-th entry of self.__keys array
+        del self.__dict[key] # delete the item with passed key 
+
