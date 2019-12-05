@@ -28,8 +28,14 @@ class OrderedDict(object):
         else:
             self.__dict[key] = value 
 
-    def __delitem__(self, key):
+    def __delitem__(self, key): # this delete implementation is faster than .remove()
         i = bisect.bisect_left(self.__keys, key)
         del self.__keys[i] # delete the i-th entry of self.__keys array
         del self.__dict[key] # delete the item with passed key 
+
+    def setdefault(self, key, value):
+        if key not in self.__dict:
+            bisect.insort_left(self.__keys, key) # inserts the new key in sorted order to self.__keys list 
+        return self.__dict.setdefault(key, value) # create new dict key/value if passed key does not already exist 
+
 
