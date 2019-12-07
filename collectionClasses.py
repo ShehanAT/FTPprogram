@@ -38,4 +38,8 @@ class OrderedDict(object):
             bisect.insort_left(self.__keys, key) # inserts the new key in sorted order to self.__keys list 
         return self.__dict.setdefault(key, value) # create new dict key/value if passed key does not already exist 
 
+    def delitem(self, key):
+        i = bisect.bisect_left(self.__keys, key) # locates the insertion point of key to maintain sorted order 
+        del self.__keys[i] # delete key from keys list
+        del self.__dict[key] # delete key from dict 
 
