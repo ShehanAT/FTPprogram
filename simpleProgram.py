@@ -1,6 +1,9 @@
 # from PyQt5.QtCore import QDateTime, Qt, QTimer 
 from PyQt5.QtCore import * 
 from PyQt5.QtGui import *
+import ftplib 
+import sys 
+
 
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit, 
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
@@ -9,6 +12,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
     QVBoxLayout, QWidget)
 
 class WidgetGallery(QDialog):
+
     def __init__(self, parent=None):
         super(WidgetGallery, self).__init__(parent)
 
@@ -33,10 +37,23 @@ class WidgetGallery(QDialog):
         # mainLayout.addWidget(self.topLeftGroupBox, 1, 0)
         # mainLayout.addWidget(self.progressBar, 3, 0, 1, 2)
         self.setLayout(mainLayout)
+        
+       
 
 
         self.setWindowTitle("Shehan's FTP Program")
         self.changeStyle("Windows")
+    def startFTP(self):
+        ftp = ftplib.FTP("ftp.nluug.nl")
+        ftp.login("anonymous", "ftplib-example-1")
+        ftp.cwd("/pub/")
+        try:
+            ftp.retrbinary("RETR " + "README.nluug", open("README.nluug", 'wb').write)
+        except:
+            print("Error")
+        ftp.quit()
+      
+
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
         self.changePalette()
@@ -95,6 +112,7 @@ class WidgetGallery(QDialog):
         self.quickConnectButton.resize(200, 40)
         self.quickConnectButton.setText("Quick Connect")
         self.quickConnectButton.setStyleSheet('QPushButton {background-color: #fff; color: black; border: 1px solid blue}')
+        self.quickConnectButton.clicked.connect(lambda:self.startFTP())
         self.show()
 
     def createProgressBar(self):
