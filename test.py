@@ -1,10 +1,9 @@
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QVBoxLayout 
 
 app = QApplication([])
-window = QWidget()
-layout = QVBoxLayout()
-layout.addWidget(QPushButton('Top'))
-layout.addWidget(QPushButton('Bottom'))
-window.setLayout(layout)
-window.show()
-app.exec_()
+button = QPushButton('Click')
+
+def on_button_clicked():
+    alert = QMessageBox()
+    alert.setText('You clicked the button!')
+    alert.exec_()
