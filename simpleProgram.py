@@ -11,8 +11,9 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
     QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
     QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
-    QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
-
+    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton)
+from PyQt5.QtCore import Qt 
+from PyQt5.QtGui import QIcon
 class WidgetGallery(QDialog):
 
     def __init__(self, parent=None):
@@ -32,6 +33,7 @@ class WidgetGallery(QDialog):
         disableWidgetsCheckBox = QCheckBox("&Disable widgets")
         self.createBottomLeftBox()
         self.createBottomRightBox()
+        self.createBottonCenterBox()
         self.createTopTextBoxes()
         self.createProgressBar()
         
@@ -89,7 +91,7 @@ class WidgetGallery(QDialog):
 
     def createBottomRightBox(self):
         self.LocalFilesList = QListWidget(self)
-        self.LocalFilesList.move(300, 60)
+        self.LocalFilesList.move(400, 60)
         self.LocalFilesList.resize(280, 280)
 
         localFiles = os.listdir("/Users/shehan")
@@ -97,6 +99,20 @@ class WidgetGallery(QDialog):
             print(type(file))
             QListWidgetItem(file, self.LocalFilesList)
 
+    def createBottonCenterBox(self):
+        self.rightArrowButton = QToolButton(self)
+        self.rightArrowButton.setIcon(QIcon(os.getcwd() + "/icons/right.png" ))
+        self.rightArrowButton.setStyleSheet("border: 1px solid black; padding: 1px; background-color: #6BA4FC")
+        self.rightArrowButton.setCursor(Qt.ArrowCursor)
+        self.rightArrowButton.resize(45, 45)
+        self.rightArrowButton.move(330, 100)
+
+        self.leftArrowButton = QToolButton(self)
+        self.leftArrowButton.setIcon(QIcon(os.getcwd() + "/icons/left.png"))
+        self.leftArrowButton.setStyleSheet("border: 1px solid black; padding: 1px; background-color: #6BA4FC")
+        self.leftArrowButton.setCursor(Qt.ArrowCursor)
+        self.leftArrowButton.resize(45, 45)
+        self.leftArrowButton.move(330, 165)
 
     def createTopLeftGroupBox(self):
         self.topLeftGroupBox = QGroupBox("Group 1")
