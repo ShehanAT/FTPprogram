@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
     QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
     QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
-    QVBoxLayout, QWidget)
+    QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 class WidgetGallery(QDialog):
 
@@ -30,10 +30,11 @@ class WidgetGallery(QDialog):
         self.useStylePaletteCheckBox.setChecked(True)
 
         disableWidgetsCheckBox = QCheckBox("&Disable widgets")
-
+        self.createBottomLeftBox()
+        self.createBottomRightBox()
         self.createTopTextBoxes()
         self.createProgressBar()
-
+        
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
         
@@ -60,16 +61,10 @@ class WidgetGallery(QDialog):
         localFileName = "manage.py"
         manageFile = open(localFileName, "w+")
         remotePath = "manage.py"
-        with connection.cd("fitness-forum"):
-            connection.get(remotePath, os.getcwd() + "/" + localFileName)
-        # connection.put(remotePath, localPath)
+        remoteFiles = connection.listdir("./")
+        for file in remoteFiles:
+            QListWidgetItem(file, self.RemoteFilesList)
         connection.close()
-        # try:
-        #     ftp.retrbinary("RETR " + "README.nluug", open("README.nluug", 'wb').write)
-        #     print("Success!")
-        # except:
-        #     print("Error")
-        # ftp.quit()
       
 
     def changeStyle(self, styleName):
@@ -86,6 +81,22 @@ class WidgetGallery(QDialog):
         currVal = self.progressBar.value()
         maxVal = self.progressBar.maximum()
         self.progressBar.setValue(currVal + (maxVal - currVal) / 100)
+
+    def createBottomLeftBox(self):
+        self.RemoteFilesList = QListWidget(self)
+        self.RemoteFilesList.move(20, 60)
+        self.RemoteFilesList.resize(280, 280)
+
+    def createBottomRightBox(self):
+        self.LocalFilesList = QListWidget(self)
+        self.LocalFilesList.move(300, 60)
+        self.LocalFilesList.resize(280, 280)
+
+        localFiles = os.listdir("/Users/shehan")
+        for file in localFiles:
+            print(type(file))
+            QListWidgetItem(file, self.LocalFilesList)
+
 
     def createTopLeftGroupBox(self):
         self.topLeftGroupBox = QGroupBox("Group 1")
