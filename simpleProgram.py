@@ -2,7 +2,9 @@
 from PyQt5.QtCore import * 
 from PyQt5.QtGui import *
 import ftplib 
+import pysftp
 import sys 
+import os 
 
 
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit, 
@@ -29,13 +31,10 @@ class WidgetGallery(QDialog):
 
         disableWidgetsCheckBox = QCheckBox("&Disable widgets")
 
-        # self.createTopLeftGroupBox()
         self.createTopTextBoxes()
         self.createProgressBar()
 
         mainLayout = QGridLayout()
-        # mainLayout.addWidget(self.topLeftGroupBox, 1, 0)
-        # mainLayout.addWidget(self.progressBar, 3, 0, 1, 2)
         self.setLayout(mainLayout)
         
        
@@ -43,15 +42,34 @@ class WidgetGallery(QDialog):
 
         self.setWindowTitle("Shehan's FTP Program")
         self.changeStyle("Windows")
-    def startFTP(self):
-        ftp = ftplib.FTP("ftp.nluug.nl")
-        ftp.login("anonymous", "ftplib-example-1")
-        ftp.cwd("/pub/")
-        try:
-            ftp.retrbinary("RETR " + "README.nluug", open("README.nluug", 'wb').write)
-        except:
-            print("Error")
-        ftp.quit()
+    def startFTP(self, hostname, username, password):
+        # ftp = ftplib.FTP(hostname)
+        # ftp.login(username, password)
+        # ftp.cwd("/pub/")
+        # Test Credentials:
+        # Hostname: ftp.nluug.nl
+        # Username: anonymous
+        # Password: ftplib-example-1
+        # Hostname: sftp://138.197.157.45
+        # Username: root 
+        # Password: Nanderlone123!
+        cnopts = pysftp.CnOpts()
+        cnopts.hostkeys = None
+        connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
+        # localPath = "/Users/shehan/Documents/FTPprogram/manage.py"
+        localFileName = "manage.py"
+        manageFile = open(localFileName, "w+")
+        remotePath = "manage.py"
+        with connection.cd("fitness-forum"):
+            connection.get(remotePath, os.getcwd() + "/" + localFileName)
+        # connection.put(remotePath, localPath)
+        connection.close()
+        # try:
+        #     ftp.retrbinary("RETR " + "README.nluug", open("README.nluug", 'wb').write)
+        #     print("Success!")
+        # except:
+        #     print("Error")
+        # ftp.quit()
       
 
     def changeStyle(self, styleName):
@@ -112,7 +130,7 @@ class WidgetGallery(QDialog):
         self.quickConnectButton.resize(200, 40)
         self.quickConnectButton.setText("Quick Connect")
         self.quickConnectButton.setStyleSheet('QPushButton {background-color: #fff; color: black; border: 1px solid blue}')
-        self.quickConnectButton.clicked.connect(lambda:self.startFTP())
+        self.quickConnectButton.clicked.connect(lambda:self.startFTP(self.hostnameTextBox.text(), self.usernameTextBox.text(), self.passwordTextBox.text()))
         self.show()
 
     def createProgressBar(self):
