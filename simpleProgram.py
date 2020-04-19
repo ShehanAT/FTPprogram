@@ -46,29 +46,25 @@ class WidgetGallery(QDialog):
         self.setWindowTitle("Shehan's FTP Program")
         self.changeStyle("Windows")
     def startFTP(self, hostname, username, password):
-        # ftp = ftplib.FTP(hostname)
-        # ftp.login(username, password)
-        # ftp.cwd("/pub/")
-        # Test Credentials:
-        # Hostname: ftp.nluug.nl
-        # Username: anonymous
-        # Password: ftplib-example-1
         # Hostname: sftp://138.197.157.45
         # Username: root 
         # Password: Nanderlone123!
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
-        connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
-        # localPath = "/Users/shehan/Documents/FTPprogram/manage.py"
+        self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
         localFileName = "manage.py"
         manageFile = open(localFileName, "w+")
         remotePath = "manage.py"
-        remoteFiles = connection.listdir("./")
+        remoteFiles = self.connection.listdir("./")
         for file in remoteFiles:
             QListWidgetItem(file, self.RemoteFilesList)
-        connection.close()
-      
 
+    def updateRemoteFiles(self):
+        remoteFiles = self.connection.listdir("./")
+        for file in remoteFiles:
+            if len(self.RemoteFilesList.findItems(file, Qt.MatchContains)) == 0:
+                QListWidgetItem(file, self.RemoteFilesList)
+        
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
         self.changePalette()
@@ -93,12 +89,30 @@ class WidgetGallery(QDialog):
         self.LocalFilesList = QListWidget(self)
         self.LocalFilesList.move(400, 60)
         self.LocalFilesList.resize(280, 280)
+        self.localFilesArr = [] 
 
-        localFiles = os.listdir("/Users/shehan")
+        self.LocalFilesList.itemSelectionChanged.connect(self.localFileSelectionChanged)
+        localPath = "/Users/shehan"
+        localFiles = os.listdir(localPath)
         for file in localFiles:
-            print(type(file))
-            QListWidgetItem(file, self.LocalFilesList)
+            QListWidgetItem(localPath + "/" + file, self.LocalFilesList)
 
+    def localFileSelectionChanged(self):
+        self.localFilesArr.append(self.LocalFilesList.selectedItems())
+        for item in self.localFilesArr:
+            print(item[0].text())
+    
+        # self.localFilesArr = []
+    
+    def localToRemoteTransfer(self, localFileName):
+        # cnopts = pysftp.CnOpts()
+        # cnopts.hostkeys = None
+        # self.connection = pysftp.Connection(host=self.hostname, username=self.username, password=self.password, cnopts=cnopts)
+        with self.connection.cd("/root"):
+            print("passing123")
+            self.connection.put(localFileName[0].text())  
+            self.updateRemoteFiles()
+            
     def createBottonCenterBox(self):
         self.rightArrowButton = QToolButton(self)
         self.rightArrowButton.setIcon(QIcon(os.getcwd() + "/icons/right.png" ))
@@ -113,6 +127,7 @@ class WidgetGallery(QDialog):
         self.leftArrowButton.setCursor(Qt.ArrowCursor)
         self.leftArrowButton.resize(45, 45)
         self.leftArrowButton.move(330, 165)
+        self.leftArrowButton.clicked.connect(lambda:self.localToRemoteTransfer(self.localFilesArr[0]))
 
     def createTopLeftGroupBox(self):
         self.topLeftGroupBox = QGroupBox("Group 1")
@@ -127,7 +142,6 @@ class WidgetGallery(QDialog):
         layout.addWidget(radioButton2)
         layout.addWidget(radioButton3)
         layout.addStretch(1)
-        # self.topLeftGroupBox.setLayout(layout)
         self.topLeftGroupBox.setLayout(layout)
 
     def createTopTextBoxes(self):
@@ -157,6 +171,9 @@ class WidgetGallery(QDialog):
         self.quickConnectButton.resize(200, 40)
         self.quickConnectButton.setText("Quick Connect")
         self.quickConnectButton.setStyleSheet('QPushButton {background-color: #fff; color: black; border: 1px solid blue}')
+        self.hostname = self.hostnameTextBox.text()
+        self.username = self.usernameTextBox.text()
+        self.password = self.passwordTextBox.text()
         self.quickConnectButton.clicked.connect(lambda:self.startFTP(self.hostnameTextBox.text(), self.usernameTextBox.text(), self.passwordTextBox.text()))
         self.show()
 
