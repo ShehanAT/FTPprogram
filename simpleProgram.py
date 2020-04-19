@@ -4,6 +4,7 @@ from PyQt5.QtGui import *
 import ftplib 
 import pysftp
 import sys 
+import traceback
 import os 
 
 
@@ -11,7 +12,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
     QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
     QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
-    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton)
+    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox)
 from PyQt5.QtCore import Qt 
 from PyQt5.QtGui import QIcon
 class WidgetGallery(QDialog):
@@ -48,7 +49,7 @@ class WidgetGallery(QDialog):
     def startFTP(self, hostname, username, password):
         # Hostname: sftp://138.197.157.45
         # Username: root 
-        # Password: Nanderlone123!
+        # Password: Nanderlone123
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
         self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
@@ -102,16 +103,20 @@ class WidgetGallery(QDialog):
         for item in self.localFilesArr:
             print(item[0].text())
     
-        # self.localFilesArr = []
     
     def localToRemoteTransfer(self, localFileName):
         # cnopts = pysftp.CnOpts()
         # cnopts.hostkeys = None
         # self.connection = pysftp.Connection(host=self.hostname, username=self.username, password=self.password, cnopts=cnopts)
         with self.connection.cd("/root"):
-            print("passing123")
-            self.connection.put(localFileName[0].text())  
-            self.updateRemoteFiles()
+            try:
+                self.connection.put(localFileName[0].text()) 
+                self.updateRemoteFiles()
+            except IsADirectoryError:
+                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
+                errorMessage.exec_()
+  
+            
             
     def createBottonCenterBox(self):
         self.rightArrowButton = QToolButton(self)
