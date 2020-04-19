@@ -41,24 +41,18 @@ class WidgetGallery(QDialog):
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
         
-       
-
-
         self.setWindowTitle("Shehan's FTP Program")
         self.changeStyle("Windows")
     def startFTP(self, hostname, username, password):
-        # Hostname: sftp://138.197.157.45
+        # Hostname: 138.197.157.45
         # Username: root 
         # Password: Nanderlone123
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
         self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
-        localFileName = "manage.py"
-        manageFile = open(localFileName, "w+")
-        remotePath = "manage.py"
-        remoteFiles = self.connection.listdir("./")
-        for file in remoteFiles:
-            QListWidgetItem(file, self.RemoteFilesList)
+        self.getLocalFileList()
+        self.getRemoteFileList()
+
 
     def updateRemoteFiles(self):
         remoteFiles = self.connection.listdir("./")
@@ -91,24 +85,36 @@ class WidgetGallery(QDialog):
 
     def createBottomLeftBox(self):
         self.RemoteFilesList = QListWidget(self)
-        self.RemoteFilesList.move(20, 60)
+        self.RemoteFilesList.move(20, 90)
         self.RemoteFilesList.resize(280, 280)
         self.remoteSelectedFile = [] 
 
+        self.RemoteFilesLabel = QLabel(self)
+        self.RemoteFilesLabel.setText("Remote Files Section:")
+        self.RemoteFilesLabel.move(20, 70)
         self.RemoteFilesList.itemSelectionChanged.connect(self.remoteFileSelectionChanged)
 
     def createBottomRightBox(self):
         self.LocalFilesList = QListWidget(self)
-        self.LocalFilesList.move(400, 60)
+        self.LocalFilesList.move(400, 90)
         self.LocalFilesList.resize(280, 280)
-        self.localSelectedFile = [] 
+        self.localSelectedFile = []
 
+        self.LocalFilesLabel = QLabel(self)
+        self.LocalFilesLabel.setText("Local Files Section:") 
+        self.LocalFilesLabel.move(400, 70)
         self.LocalFilesList.itemSelectionChanged.connect(self.localFileSelectionChanged)
 
+    def getLocalFileList(self):
         localPath = "/Users/shehan"
         localFiles = os.listdir(localPath)
         for file in localFiles:
             QListWidgetItem(localPath + "/" + file, self.LocalFilesList)
+
+    def getRemoteFileList(self):
+        remoteFiles = self.connection.listdir("./")
+        for file in remoteFiles:
+            QListWidgetItem(file, self.RemoteFilesList)
 
     def localFileSelectionChanged(self):
         self.localSelectedFile.append(self.LocalFilesList.selectedItems())
@@ -178,6 +184,7 @@ class WidgetGallery(QDialog):
         self.usernameTextBox.setPlaceholderText("Username: ")
 
         self.passwordTextBox = QLineEdit(self)
+        self.passwordTextBox.setEchoMode(QLineEdit.Password)
         self.passwordTextBox.move(600, 20)
         self.passwordTextBox.resize(280, 40)
         self.passwordTextBox.setPlaceholderText("Password: ")
