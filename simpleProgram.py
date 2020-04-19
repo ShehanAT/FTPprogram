@@ -65,6 +65,14 @@ class WidgetGallery(QDialog):
         for file in remoteFiles:
             if len(self.RemoteFilesList.findItems(file, Qt.MatchContains)) == 0:
                 QListWidgetItem(file, self.RemoteFilesList)
+
+    def updateLocalFiles(self):
+        localPath = "/Users/shehan"
+        localFiles = os.listdir(localPath)
+
+        for file in localFiles:
+            if len(self.LocalFilesList.findItems(file, Qt.MatchContains)) == 0:
+                QListWidgetItem(file, self.LocalFilesList)
         
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
@@ -85,29 +93,30 @@ class WidgetGallery(QDialog):
         self.RemoteFilesList = QListWidget(self)
         self.RemoteFilesList.move(20, 60)
         self.RemoteFilesList.resize(280, 280)
+        self.remoteSelectedFile = [] 
+
+        self.RemoteFilesList.itemSelectionChanged.connect(self.remoteFileSelectionChanged)
 
     def createBottomRightBox(self):
         self.LocalFilesList = QListWidget(self)
         self.LocalFilesList.move(400, 60)
         self.LocalFilesList.resize(280, 280)
-        self.localFilesArr = [] 
+        self.localSelectedFile = [] 
 
         self.LocalFilesList.itemSelectionChanged.connect(self.localFileSelectionChanged)
+
         localPath = "/Users/shehan"
         localFiles = os.listdir(localPath)
         for file in localFiles:
             QListWidgetItem(localPath + "/" + file, self.LocalFilesList)
 
     def localFileSelectionChanged(self):
-        self.localFilesArr.append(self.LocalFilesList.selectedItems())
-        for item in self.localFilesArr:
-            print(item[0].text())
+        self.localSelectedFile.append(self.LocalFilesList.selectedItems())
     
-    
+    def remoteFileSelectionChanged(self):
+        self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
+
     def localToRemoteTransfer(self, localFileName):
-        # cnopts = pysftp.CnOpts()
-        # cnopts.hostkeys = None
-        # self.connection = pysftp.Connection(host=self.hostname, username=self.username, password=self.password, cnopts=cnopts)
         with self.connection.cd("/root"):
             try:
                 self.connection.put(localFileName[0].text()) 
@@ -115,9 +124,16 @@ class WidgetGallery(QDialog):
             except IsADirectoryError:
                 errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
                 errorMessage.exec_()
-  
-            
-            
+        
+    def remoteToLocalTransfer(self, remoteFileName):
+        with self.connection.cd("/root"):
+            try: 
+                self.connection.get(remoteFileName[0].text(), "/Users/shehan/" + remoteFileName[0].text())
+                self.updateLocalFiles()
+            except IsADirectoryError:
+                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
+                errorMessage.exec_()
+        
     def createBottonCenterBox(self):
         self.rightArrowButton = QToolButton(self)
         self.rightArrowButton.setIcon(QIcon(os.getcwd() + "/icons/right.png" ))
@@ -125,6 +141,7 @@ class WidgetGallery(QDialog):
         self.rightArrowButton.setCursor(Qt.ArrowCursor)
         self.rightArrowButton.resize(45, 45)
         self.rightArrowButton.move(330, 100)
+        self.rightArrowButton.clicked.connect(lambda:self.remoteToLocalTransfer(self.remoteSelectedFile[0]))
 
         self.leftArrowButton = QToolButton(self)
         self.leftArrowButton.setIcon(QIcon(os.getcwd() + "/icons/left.png"))
@@ -132,7 +149,7 @@ class WidgetGallery(QDialog):
         self.leftArrowButton.setCursor(Qt.ArrowCursor)
         self.leftArrowButton.resize(45, 45)
         self.leftArrowButton.move(330, 165)
-        self.leftArrowButton.clicked.connect(lambda:self.localToRemoteTransfer(self.localFilesArr[0]))
+        self.leftArrowButton.clicked.connect(lambda:self.localToRemoteTransfer(self.localSelectedFile[0]))
 
     def createTopLeftGroupBox(self):
         self.topLeftGroupBox = QGroupBox("Group 1")
