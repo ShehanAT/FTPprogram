@@ -1,11 +1,10 @@
 from PyQt5.QtCore import * 
 from PyQt5.QtGui import *
-import ftplib 
 import pysftp
 import sys 
 import traceback
 import os 
-
+from pysftp import paramiko
 
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit, 
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
@@ -48,9 +47,16 @@ class Program(QDialog):
         # Password: Nanderlone123
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
-        self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
-        self.getLocalFileList()
-        self.getRemoteFileList()
+        try: 
+            self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
+            self.getLocalFileList()
+            self.getRemoteFileList()
+        except paramiko.ssh_exception.SSHException:
+            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Unable to connect to " + hostname)
+            errorMessage.exec_()
+        except paramiko.ssh_exception.AuthenticationException:
+            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Authentication Failed! Please make sure to enter a valid hostname, username and password")
+            errorMessage.exec_()
 
 
     def updateRemoteFiles(self):
@@ -138,10 +144,15 @@ class Program(QDialog):
             except IsADirectoryError:
                 errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
                 errorMessage.exec_()
+            except PermissionError:
+                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission Denied for file transfer")
+                errorMessage.exec_()
             except OSError:
                 tracebackString = traceback.print_exc()
                 errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
                 errorMessage.exec_()
+        
+       
 
     def createBottonCenterBox(self):
         self.rightArrowButton = QToolButton(self)
