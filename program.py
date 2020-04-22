@@ -5,13 +5,13 @@ import sys
 import traceback
 import os 
 from pysftp import paramiko
-
+from waitingSpinner import QtWaitingSpinner
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit, 
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
     QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
     QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
     QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame)
-from PyQt5.QtCore import Qt 
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 class Program(QDialog):
 
@@ -30,13 +30,16 @@ class Program(QDialog):
         self.useStylePaletteCheckBox.setChecked(True)
 
         disableWidgetsCheckBox = QCheckBox("&Disable widgets")
+    
         self.createNotificationBox()
         self.createBottomLeftBox()
         self.createBottomRightBox()
         self.createBottonCenterBox()
         self.createTopTextBoxes()
         self.createProgressBar()
-        
+
+       
+
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
         
@@ -53,7 +56,8 @@ class Program(QDialog):
             self.getLocalFileList()
             self.getRemoteFileList()
             self.notificationLabel.setText("Please select file to transfer and click the arrow buttons...")
-
+            self.rightArrowButton.setEnabled(True)
+            self.leftArrowButton.setEnabled(True)
         except paramiko.ssh_exception.SSHException:
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Unable to connect to " + hostname)
             errorMessage.exec_()
@@ -97,6 +101,7 @@ class Program(QDialog):
         self.notificationLabel.setText("Please enter remote credentials to continue...")
         self.notificationLabel.setAlignment(Qt.AlignTop)
         self.notificationLabel.resize(400, 20)
+     
 
     def createBottomLeftBox(self):
         self.RemoteFilesList = QListWidget(self)
@@ -172,6 +177,7 @@ class Program(QDialog):
         self.rightArrowButton.resize(45, 45)
         self.rightArrowButton.move(330, 100)
         self.rightArrowButton.clicked.connect(lambda:self.remoteToLocalTransfer(self.remoteSelectedFile[0]))
+        self.rightArrowButton.setEnabled(False)
 
         self.leftArrowButton = QToolButton(self)
         self.leftArrowButton.setIcon(QIcon(os.getcwd() + "/icons/left.png"))
@@ -180,6 +186,7 @@ class Program(QDialog):
         self.leftArrowButton.resize(45, 45)
         self.leftArrowButton.move(330, 165)
         self.leftArrowButton.clicked.connect(lambda:self.localToRemoteTransfer(self.localSelectedFile[0]))
+        self.leftArrowButton.setEnabled(False)
 
     def createTopLeftGroupBox(self):
         self.topLeftGroupBox = QGroupBox("Group 1")
@@ -212,7 +219,6 @@ class Program(QDialog):
         self.passwordTextBox.move(600, 20)
         self.passwordTextBox.resize(280, 40)
         self.passwordTextBox.setPlaceholderText("Password: ")
-
 
         self.quickConnectButton = QPushButton(self)
         self.quickConnectButton.setDefault(True)
