@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
     QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
     QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
-    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox)
+    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame)
 from PyQt5.QtCore import Qt 
 from PyQt5.QtGui import QIcon
 class Program(QDialog):
@@ -30,6 +30,7 @@ class Program(QDialog):
         self.useStylePaletteCheckBox.setChecked(True)
 
         disableWidgetsCheckBox = QCheckBox("&Disable widgets")
+        self.createNotificationBox()
         self.createBottomLeftBox()
         self.createBottomRightBox()
         self.createBottonCenterBox()
@@ -51,6 +52,8 @@ class Program(QDialog):
             self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
             self.getLocalFileList()
             self.getRemoteFileList()
+            self.notificationLabel.setText("Please select file to transfer and click the arrow buttons...")
+
         except paramiko.ssh_exception.SSHException:
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Unable to connect to " + hostname)
             errorMessage.exec_()
@@ -71,7 +74,7 @@ class Program(QDialog):
 
         for file in localFiles:
             if len(self.LocalFilesList.findItems(file, Qt.MatchContains)) == 0:
-                QListWidgetItem(file, self.LocalFilesList)
+                QListWidgetItem("/Users/shehan/" + file, self.LocalFilesList)
         
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
@@ -87,6 +90,13 @@ class Program(QDialog):
         currVal = self.progressBar.value()
         maxVal = self.progressBar.maximum()
         self.progressBar.setValue(currVal + (maxVal - currVal) / 100)
+
+    def createNotificationBox(self):
+        self.notificationLabel = QLabel(self)
+        self.notificationLabel.setFrameStyle(QFrame.Panel|QFrame.Sunken)
+        self.notificationLabel.setText("Please enter remote credentials to continue...")
+        self.notificationLabel.setAlignment(Qt.AlignTop)
+        self.notificationLabel.resize(400, 20)
 
     def createBottomLeftBox(self):
         self.RemoteFilesList = QListWidget(self)
