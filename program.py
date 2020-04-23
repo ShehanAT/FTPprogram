@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
     QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
     QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
-    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame)
+    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame, QFileDialog)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 class Program(QDialog):
@@ -53,7 +53,7 @@ class Program(QDialog):
         cnopts.hostkeys = None
         try: 
             self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
-            self.getLocalFileList()
+            self.getLocalFileList("/Users/shehan/")
             self.getRemoteFileList()
             self.notificationLabel.setText("Please select file to transfer and click the arrow buttons...")
             self.rightArrowButton.setEnabled(True)
@@ -115,7 +115,19 @@ class Program(QDialog):
         self.RemoteFilesLabel.move(20, 70)
         self.RemoteFilesList.itemSelectionChanged.connect(self.remoteFileSelectionChanged)
 
+    def changeLocalDir(self):
+        self.localFileBrowser = QFileDialog().getExistingDirectory(self, "Change current directory", os.path.expanduser("~"), QFileDialog.ShowDirsOnly)
+        self.getLocalFileList(self.localFileBrowser + "/")
+
     def createBottomRightBox(self):
+        self.changeLocalDirBtn = QPushButton(self)
+        self.changeLocalDirBtn.setDefault(True)
+        self.changeLocalDirBtn.move(700,70)
+        self.changeLocalDirBtn.resize(150, 40)
+        self.changeLocalDirBtn.setText("Change Local Dir")
+        self.changeLocalDirBtn.setStyleSheet("background-color: #fff; color: black; border: 1px solid blue;")
+        self.changeLocalDirBtn.clicked.connect(lambda:self.changeLocalDir())
+        
         self.LocalFilesList = QListWidget(self)
         self.LocalFilesList.move(400, 110)
         self.LocalFilesList.resize(280, 280)
@@ -126,23 +138,23 @@ class Program(QDialog):
         self.LocalFilesLabel.move(400, 70)
         self.LocalFilesList.itemSelectionChanged.connect(self.localFileSelectionChanged)
 
-    def getLocalFileList(self):
-        localPath = "/Users/shehan/"
+    def getLocalFileList(self, localPath):
+        self.LocalFilesList.clear()
         localFiles = os.listdir(localPath)
+        # create back button 
+        QListWidgetItem("..", self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
         for file in localFiles:
             fileSize = os.path.getsize(localPath + file)
             if os.path.isfile(localPath + file):
                 QListWidgetItem(localPath + file + " - " + str(fileSize), self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
             else:
                 QListWidgetItem(localPath + file + " - " + str(fileSize), self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
-            # .setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
 
             fileSize = os.path.getsize(localPath + file)
 
     def getRemoteFileList(self):
         remoteFiles = self.connection.listdir_attr("./")
         remotePath = self.connection.pwd
-        # print(remotePath)
         for file in remoteFiles:
             fileType = file.st_mode // 10000
             if fileType == 1:
@@ -239,7 +251,7 @@ class Program(QDialog):
         self.quickConnectButton.move(890, 20)
         self.quickConnectButton.resize(150, 40)
         self.quickConnectButton.setText("Quick Connect")
-        self.quickConnectButton.setStyleSheet('QPushButton {background-color: #fff; color: black; border: 1px solid blue}')
+        self.quickConnectButton.setStyleSheet('QPushButton {background-color: #fff; color: black; border: 1px solid blue;}')
         self.hostname = self.hostnameTextBox.text()
         self.username = self.usernameTextBox.text()
         self.password = self.passwordTextBox.text()
