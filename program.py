@@ -131,13 +131,24 @@ class Program(QDialog):
         localFiles = os.listdir(localPath)
         for file in localFiles:
             fileSize = os.path.getsize(localPath + file)
-            QListWidgetItem(localPath + file + " - " + str(fileSize), self.LocalFilesList)
+            if os.path.isfile(localPath + file):
+                QListWidgetItem(localPath + file + " - " + str(fileSize), self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
+            else:
+                QListWidgetItem(localPath + file + " - " + str(fileSize), self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+            # .setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
+
+            fileSize = os.path.getsize(localPath + file)
 
     def getRemoteFileList(self):
         remoteFiles = self.connection.listdir_attr("./")
-        
+        remotePath = self.connection.pwd
+        # print(remotePath)
         for file in remoteFiles:
-            QListWidgetItem(file.filename + " - " + str(file.st_size) , self.RemoteFilesList)
+            fileType = file.st_mode // 10000
+            if fileType == 1:
+                QListWidgetItem(remotePath + "/" + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+            elif fileType == 3:
+                QListWidgetItem(remotePath + "/" + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
 
     def localFileSelectionChanged(self):
         self.localSelectedFile.append(self.LocalFilesList.selectedItems())
