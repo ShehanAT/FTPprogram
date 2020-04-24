@@ -181,7 +181,6 @@ class Program(QDialog):
     def remoteFileSelectionChanged(self):
         
         self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
-        print(len(self.remoteSelectedFile))
         if self.remoteSelectedFile[0][0].text() == "..":
             self.RemoteFilesList.clear()
             self.getRemoteFileList("..")
@@ -200,7 +199,6 @@ class Program(QDialog):
                 errorMessage.exec_()
         
     def remoteToLocalTransfer(self, remoteFileName):
-        print(remoteFileName[0].text())
         with self.connection.cd("/root"):
             try: 
                 self.connection.get(remoteFileName[0].text(), "/Users/shehan/" + remoteFileName[0].text())
