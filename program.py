@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
     QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
     QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame, QFileDialog)
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QBrush
 class Program(QDialog):
 
     def __init__(self, parent=None):
@@ -38,13 +38,15 @@ class Program(QDialog):
         self.createTopTextBoxes()
         self.createProgressBar()
 
-        self.currentRemotePath = ""       
+        self.currentRemotePath = "/"       
         self.startFTP("138.197.157.45", "root", "Nanderlone123")
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
         
         self.setWindowTitle("Shehan's FTP Program")
         self.changeStyle("Windows")
+
+
     def startFTP(self, hostname, username, password):
         # Hostname: 138.197.157.45
         # Username: root 
@@ -112,7 +114,8 @@ class Program(QDialog):
         self.RemoteFilesLabel = QLabel(self)
         self.RemoteFilesLabel.setText("Remote Files Section:\n{file} - {size}")
         self.RemoteFilesLabel.move(20, 70)
-        self.RemoteFilesList.itemSelectionChanged.connect(self.remoteFileSelectionChanged)
+        self.RemoteFilesList.itemDoubleClicked.connect(self.remoteFileSelectionChanged)
+        # self.RemoteFilesList.itemSelectionChanged.connect(self.remoteFileSelectionChanged)
 
     def changeLocalDir(self):
         self.localFileBrowser = QFileDialog().getExistingDirectory(self, "Change current directory", os.path.expanduser("~"), QFileDialog.ShowDirsOnly)
@@ -154,41 +157,71 @@ class Program(QDialog):
     def getRemoteFileList(self, *args):
         if args:
             newRemoteArr = self.currentRemotePath.split("/")
+            arrLength = len(newRemoteArr)
+            i = 0
+            while i < arrLength:
+                if newRemoteArr[i] == "":
+                    del(newRemoteArr[i])
+                    arrLength -= 1
+                    continue
+                i += 1 
+            if len(newRemoteArr) == 0:
+                # self.currentRemotePath is "/"
+                return False 
+            self.RemoteFilesList.clear() # clear current list since back navigation is valid
             newRemoteArr.pop()
             newRemotePath = ""
-            for i in newRemoteArr:
-                newRemotePath = newRemotePath + '/'
-                newRemotePath = newRemotePath + i 
-            remoteFiles = self.connection.listdir_attr(newRemotePath)
+            if len(newRemoteArr) != 0:
+                for i in newRemoteArr:
+                    newRemotePath = newRemotePath + '/'
+                    newRemotePath = newRemotePath + i 
             remotePath = newRemotePath[:-1]
+            self.currentRemotePath = "/"
+            self.currentRemotePath = newRemotePath + self.currentRemotePath
+            remoteFiles = self.connection.listdir_attr(self.currentRemotePath)
+            
         else:  
             remoteFiles = self.connection.listdir_attr("./")
             remoteDir = self.connection.normalize(".")
-            remotePath = self.connection.pwd
-            self.currentRemotePath = remotePath
+            self.currentRemotePath = self.connection.pwd + self.currentRemotePath
         QListWidgetItem("..", self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
         for file in remoteFiles:
             fileType = file.st_mode // 10000
             if fileType == 1:
-                QListWidgetItem(remotePath + "/" + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+                QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+                self.RemoteFilesList.findItems(self.currentRemotePath + file.filename + " - " + str(file.st_size), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
             elif fileType == 3:
-                QListWidgetItem(remotePath + "/" + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
-
+                QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
+        return True 
     def localFileSelectionChanged(self):
   
         self.localSelectedFile.append(self.LocalFilesList.selectedItems())
     
     def remoteFileSelectionChanged(self):
-        
         self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
         if self.remoteSelectedFile[0][0].text() == "..":
-            self.RemoteFilesList.clear()
+            
             self.getRemoteFileList("..")
             self.remoteSelectedFile = []
         else:
+            item = self.remoteSelectedFile[0][0]
+            if item.background().color().getRgb() == (100, 100, 150, 255):
+                if self.currentRemotePath == "/":
+                    self.currentRemotePath = item.text().split(" -")[0] + self.currentRemotePath
+                else:
+                    self.currentRemotePath = item.text().split(" -")[0] + "/"
+                with self.connection.cd(self.currentRemotePath):
+                    self.RemoteFilesList.clear()
+                    QListWidgetItem("..", self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+                    for file in self.connection.listdir_attr():
+                        fileType = file.st_mode // 10000
+                        if fileType == 1:
+                            QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+                            self.RemoteFilesList.findItems(self.currentRemotePath + file.filename + " - " + str(file.st_size), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
+                        if fileType == 3:
+                            QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
             self.remoteSelectedFile = []
-            self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
-        
+            # self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
     def localToRemoteTransfer(self, localFileName):
         with self.connection.cd("/root"):
             try:
@@ -199,21 +232,24 @@ class Program(QDialog):
                 errorMessage.exec_()
         
     def remoteToLocalTransfer(self, remoteFileName):
-        with self.connection.cd("/root"):
-            try: 
-                self.connection.get(remoteFileName[0].text(), "/Users/shehan/" + remoteFileName[0].text())
-                self.updateLocalFiles()
-            except IsADirectoryError:
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
-                errorMessage.exec_()
-            except PermissionError:
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission Denied for file transfer")
-                errorMessage.exec_()
-            except OSError:
-                tracebackString = traceback.print_exc()
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
-                errorMessage.exec_()
-        
+        # try: 
+        with self.connection.cd(self.currentRemotePath):
+            self.connection.get(remoteFileName[0].text(), "/Users/shehan/" + remoteFileName[0].text())
+        # except IsADirectoryError:
+        #     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
+        #     errorMessage.exec_()
+        # except PermissionError:
+        #     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission Denied for file transfer")
+        #     errorMessage.exec_()
+        # except FileNotFoundError:
+        #     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "No such file")
+        #     errorMessage.exec_()
+        # except OSError:
+        #     tracebackString = traceback.print_exc()
+        #     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
+        #     errorMessage.exec_()
+        self.updateLocalFiles()
+
        
 
     def createBottonCenterBox(self):
