@@ -140,7 +140,6 @@ class Program(QDialog):
         self.LocalFilesLabel.setText("Local Files Section:\n{file} - {size}") 
         self.LocalFilesLabel.move(400, 70)
         self.LocalFilesList.itemDoubleClicked.connect(self.localFileSelectionChanged)
-        # self.LocalFilesList.itemSelectionChanged.connect(self.localFileSelectionChanged)
 
     def getLocalFileList(self, localPath):
         if localPath == "..":
@@ -234,13 +233,17 @@ class Program(QDialog):
                     self.currentLocalPath = item.text().split(" -")[0] + "/"
                 self.LocalFilesList.clear()
                 QListWidgetItem("..", self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
-                for file in os.scandir(self.currentLocalPath):
-                    fileType = list(file.stat())[0] // 10000
-                    if fileType == 1:
-                        QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
-                        self.LocalFilesList.findItems(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
-                    if fileType == 3:
-                        QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
+                try:
+                    for file in os.scandir(self.currentLocalPath):
+                        fileType = list(file.stat())[0] // 10000
+                        if fileType == 1:
+                            QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+                            self.LocalFilesList.findItems(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
+                        if fileType == 3:
+                            QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
+                except PermissionError:
+                    errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission Denied for file transfer")
+                    errorMessage.exec_()
             self.localSelectedFile = []    
 
     def remoteFileSelectionChanged(self):
