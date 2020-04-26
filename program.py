@@ -38,7 +38,8 @@ class Program(QDialog):
         self.createTopTextBoxes()
         self.createProgressBar()
 
-        self.currentRemotePath = "/"       
+        self.currentRemotePath = "/"   
+        self.currentLocalPath = "/"    
         self.startFTP("138.197.157.45", "root", "Nanderlone123")
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
@@ -138,22 +139,47 @@ class Program(QDialog):
         self.LocalFilesLabel = QLabel(self)
         self.LocalFilesLabel.setText("Local Files Section:\n{file} - {size}") 
         self.LocalFilesLabel.move(400, 70)
-        self.LocalFilesList.itemSelectionChanged.connect(self.localFileSelectionChanged)
+        self.LocalFilesList.itemDoubleClicked.connect(self.localFileSelectionChanged)
+        # self.LocalFilesList.itemSelectionChanged.connect(self.localFileSelectionChanged)
 
     def getLocalFileList(self, localPath):
-        self.LocalFilesList.clear()
-        localFiles = os.listdir(localPath)
+        if localPath == "..":
+            newLocalArr = self.currentLocalPath.split("/")
+            arrLength = len(newLocalArr)
+            i = 0
+            while i < arrLength:
+                if newLocalArr[i] == "":
+                    del(newLocalArr[i])
+                    arrLength -= 1
+                    continue
+                i += 1 
+            if len(newLocalArr) == 0:
+                # self.currentLocalPath is "/"
+                return False 
+            self.LocalFilesList.clear()
+            newLocalArr.pop()
+            newLocalPath = ""
+            if len(newLocalArr) != 0:
+                for i in newLocalArr:
+                    newLocalPath = newLocalPath + '/'
+                    newLocalPath = newLocalPath + i 
+            localPath = newLocalPath[:-1]
+            self.currentLocalPath = "/"
+            self.currentLocalPath = newLocalPath + self.currentLocalPath
+            localFiles = os.scandir(self.currentLocalPath)
+        else:  
+            localFiles = os.scandir("./")
+            self.currentLocalPath = os.getcwd() + self.currentLocalPath
         # create back button 
         QListWidgetItem("..", self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
         for file in localFiles:
-            fileSize = os.path.getsize(localPath + file)
-            if os.path.isfile(localPath + file):
-                QListWidgetItem(localPath + file + " - " + str(fileSize), self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
-            else:
-                QListWidgetItem(localPath + file + " - " + str(fileSize), self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
-
-            fileSize = os.path.getsize(localPath + file)
-
+            fileType = list(file.stat())[0] // 10000
+            if fileType == 1:
+                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+                self.LocalFilesList.findItems(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
+            elif fileType == 3:
+                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
+        return True 
     def getRemoteFileList(self, *args):
         if args:
             newRemoteArr = self.currentRemotePath.split("/")
@@ -194,13 +220,32 @@ class Program(QDialog):
                 QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
         return True 
     def localFileSelectionChanged(self):
-  
         self.localSelectedFile.append(self.LocalFilesList.selectedItems())
-    
+        item = self.localSelectedFile[0][0]
+        if item.text() == "..":
+            self.getLocalFileList("..")
+            self.localSelectedFile = []
+        else:
+            if item.background().color().getRgb() == (100, 100, 150, 255):
+                # selection is dir, switch dirs 
+                if self.currentLocalPath == "/":
+                    self.currentLocalPath = item.text().split(" -")[0] + self.currentLocalPath
+                else:
+                    self.currentLocalPath = item.text().split(" -")[0] + "/"
+                self.LocalFilesList.clear()
+                QListWidgetItem("..", self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+                for file in os.scandir(self.currentLocalPath):
+                    fileType = list(file.stat())[0] // 10000
+                    if fileType == 1:
+                        QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/directory.png"))
+                        self.LocalFilesList.findItems(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
+                    if fileType == 3:
+                        QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
+            self.localSelectedFile = []    
+
     def remoteFileSelectionChanged(self):
         self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
         if self.remoteSelectedFile[0][0].text() == "..":
-            
             self.getRemoteFileList("..")
             self.remoteSelectedFile = []
         else:
@@ -221,7 +266,7 @@ class Program(QDialog):
                         if fileType == 3:
                             QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
             self.remoteSelectedFile = []
-            # self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
+
     def localToRemoteTransfer(self, localFileName):
         with self.connection.cd("/root"):
             try:
