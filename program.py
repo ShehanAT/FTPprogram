@@ -116,21 +116,8 @@ class Program(QDialog):
         self.RemoteFilesLabel.setText("Remote Files Section:\n{file} - {size}")
         self.RemoteFilesLabel.move(20, 70)
         self.RemoteFilesList.itemDoubleClicked.connect(self.remoteFileSelectionChanged)
-        # self.RemoteFilesList.itemSelectionChanged.connect(self.remoteFileSelectionChanged)
 
-    def changeLocalDir(self):
-        self.localFileBrowser = QFileDialog().getExistingDirectory(self, "Change current directory", os.path.expanduser("~"), QFileDialog.ShowDirsOnly)
-        self.getLocalFileList(self.localFileBrowser + "/")
-
-    def createBottomRightBox(self):
-        self.changeLocalDirBtn = QPushButton(self)
-        self.changeLocalDirBtn.setDefault(True)
-        self.changeLocalDirBtn.move(700,70)
-        self.changeLocalDirBtn.resize(150, 40)
-        self.changeLocalDirBtn.setText("Change Local Dir")
-        self.changeLocalDirBtn.setStyleSheet("background-color: #fff; color: black; border: 1px solid blue;")
-        self.changeLocalDirBtn.clicked.connect(lambda:self.changeLocalDir())
-        
+    def createBottomRightBox(self):        
         self.LocalFilesList = QListWidget(self)
         self.LocalFilesList.move(400, 110)
         self.LocalFilesList.resize(280, 280)
