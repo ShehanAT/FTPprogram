@@ -5,7 +5,6 @@ import sys
 import traceback
 import os 
 from pysftp import paramiko
-from waitingSpinner import QtWaitingSpinner
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit, 
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
     QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
@@ -19,7 +18,7 @@ class Program(QDialog):
         super(Program, self).__init__(parent)
 
         self.originalPalette = QApplication.palette()
-
+        self.threadpool = QThreadPool()
         styleComboBox = QComboBox()
         styleComboBox.addItems(QStyleFactory.keys())
 
@@ -358,6 +357,7 @@ class Program(QDialog):
         self.quickConnectButton.clicked.connect(lambda:self.startFTP(self.hostnameTextBox.text(), self.usernameTextBox.text(), self.passwordTextBox.text()))
         self.show()
 
+        
     def createProgressBar(self):
         self.progressBar = QProgressBar()
         self.progressBar.setRange(0, 10000)
