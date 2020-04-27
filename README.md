@@ -2,6 +2,7 @@
 Python FTP program built using PyQt5
 
 
-### Logs:
-* Changing the remote&local file lists to navigation purposes only
+### Instructions to run locally:
+1. Clone repo
+2. run ```python3 main.py```
 
