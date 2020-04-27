@@ -18,7 +18,7 @@ class Program(QDialog):
         super(Program, self).__init__(parent)
 
         self.originalPalette = QApplication.palette()
-        self.threadpool = QThreadPool()
+        
         styleComboBox = QComboBox()
         styleComboBox.addItems(QStyleFactory.keys())
 
@@ -45,7 +45,6 @@ class Program(QDialog):
         self.setWindowTitle("Shehan's FTP Program")
         self.changeStyle("Windows")
 
-
     def startFTP(self, hostname, username, password):
         # Hostname: 138.197.157.45
         # Username: root 
@@ -65,7 +64,6 @@ class Program(QDialog):
         except paramiko.ssh_exception.AuthenticationException:
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Authentication Failed! Please make sure to enter a valid hostname, username and password")
             errorMessage.exec_()
-
 
     def updateRemoteFiles(self):
         remoteFiles = self.connection.listdir_attr("./")
