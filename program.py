@@ -40,7 +40,6 @@ class Program(QDialog):
 
         self.currentRemotePath = "/"   
         self.currentLocalPath = "/"    
-        self.startFTP("138.197.157.45", "root", "Nanderlone123")
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
         
@@ -204,7 +203,6 @@ class Program(QDialog):
                 QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
         return True 
     def localFileSelectionChanged(self):
-        # self.LocalFilesList.selectedItems()[0]
         self.localSelectedFile = self.LocalFilesList.selectedItems()[0]
         item = self.localSelectedFile
         if item.text() == "..":
@@ -235,7 +233,6 @@ class Program(QDialog):
 
     def remoteFileSelectionChanged(self):
         self.remoteSelectedFile = self.RemoteFilesList.selectedItems()[0]
-        # self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
         item = self.remoteSelectedFile
         if item.text() == "..":
             self.getRemoteFileList("..")
@@ -280,7 +277,6 @@ class Program(QDialog):
                     arrLength -= 1
                     continue 
                 i += 1
-            print(newLocalArr)
             newLocalFileName = newLocalArr[-1]
             with self.connection.cd(self.currentRemotePath):
                 self.connection.get(remoteFileName, self.currentLocalPath + newLocalFileName)
