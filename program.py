@@ -76,12 +76,10 @@ class Program(QDialog):
                 QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
 
     def updateLocalFiles(self):
-        localPath = "/Users/shehan/"
-        localFiles = os.listdir(localPath)
-
+        localFiles = os.scandir(self.currentLocalPath)
         for file in localFiles:
-            if len(self.LocalFilesList.findItems(file, Qt.MatchContains)) == 0:
-                QListWidgetItem("/Users/shehan/" + file, self.LocalFilesList)
+            if len(self.LocalFilesList.findItems(file.name, Qt.MatchContains)) == 0:
+                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), self.LocalFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
         
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
@@ -233,19 +231,16 @@ class Program(QDialog):
                     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission Denied for file transfer")
                     errorMessage.exec_()
                 self.localSelectedFile = ""   
-            else:
-            # selected item is a file
-                
-                print(self.localSelectedFile)
-            
+         
 
     def remoteFileSelectionChanged(self):
-        self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
-        if self.remoteSelectedFile[0][0].text() == "..":
+        self.remoteSelectedFile = self.RemoteFilesList.selectedItems()[0]
+        # self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
+        item = self.remoteSelectedFile
+        if item.text() == "..":
             self.getRemoteFileList("..")
-            self.remoteSelectedFile = []
+            self.remoteSelectedFile = ""
         else:
-            item = self.remoteSelectedFile[0][0]
             if item.background().color().getRgb() == (100, 100, 150, 255):
                 if self.currentRemotePath == "/":
                     self.currentRemotePath = item.text().split(" -")[0] + self.currentRemotePath
@@ -261,7 +256,7 @@ class Program(QDialog):
                             self.RemoteFilesList.findItems(self.currentRemotePath + file.filename + " - " + str(file.st_size), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
                         if fileType == 3:
                             QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
-            self.remoteSelectedFile = []
+                self.remoteSelectedFile = ""
 
     def localToRemoteTransfer(self, localFile):
         with self.connection.cd(self.currentRemotePath):
@@ -273,26 +268,36 @@ class Program(QDialog):
                 errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
                 errorMessage.exec_()
         
-    def remoteToLocalTransfer(self, remoteFileName):
-        # try: 
-        with self.connection.cd(self.currentRemotePath):
-            self.connection.get(remoteFileName[0].text(), "/Users/shehan/" + remoteFileName[0].text())
-        # except IsADirectoryError:
-        #     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
-        #     errorMessage.exec_()
-        # except PermissionError:
-        #     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission Denied for file transfer")
-        #     errorMessage.exec_()
-        # except FileNotFoundError:
-        #     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "No such file")
-        #     errorMessage.exec_()
-        # except OSError:
-        #     tracebackString = traceback.print_exc()
-        #     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
-        #     errorMessage.exec_()
-        self.updateLocalFiles()
-
-       
+    def remoteToLocalTransfer(self, remoteFile):
+        try: 
+            remoteFileName = remoteFile.text().split(" -")[0]
+            newLocalArr = remoteFileName.split("/")
+            arrLength = len(newLocalArr)
+            i = 0
+            while i < arrLength:
+                if newLocalArr[i] == "":
+                    del(newLocalArr[i])
+                    arrLength -= 1
+                    continue 
+                i += 1
+            print(newLocalArr)
+            newLocalFileName = newLocalArr[-1]
+            with self.connection.cd(self.currentRemotePath):
+                self.connection.get(remoteFileName, self.currentLocalPath + newLocalFileName)
+                self.updateLocalFiles()
+        except IsADirectoryError:
+            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
+            errorMessage.exec_()
+        except PermissionError:
+            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission Denied for file transfer")
+            errorMessage.exec_()
+        except FileNotFoundError:
+            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "No such file")
+            errorMessage.exec_()
+        except OSError:
+            tracebackString = traceback.print_exc()
+            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
+            errorMessage.exec_()
 
     def createBottonCenterBox(self):
         self.rightArrowButton = QToolButton(self)
@@ -301,7 +306,7 @@ class Program(QDialog):
         self.rightArrowButton.setCursor(Qt.ArrowCursor)
         self.rightArrowButton.resize(45, 45)
         self.rightArrowButton.move(330, 100)
-        self.rightArrowButton.clicked.connect(lambda:self.remoteToLocalTransfer(self.remoteSelectedFile[0]))
+        self.rightArrowButton.clicked.connect(lambda:self.remoteToLocalTransfer(self.remoteSelectedFile))
         self.rightArrowButton.setEnabled(False)
 
         self.leftArrowButton = QToolButton(self)
