@@ -70,10 +70,10 @@ class Program(QDialog):
 
 
     def updateRemoteFiles(self):
-        remoteFiles = self.connection.listdir("./")
+        remoteFiles = self.connection.listdir_attr("./")
         for file in remoteFiles:
-            if len(self.RemoteFilesList.findItems(file, Qt.MatchContains)) == 0:
-                QListWidgetItem(file, self.RemoteFilesList)
+            if len(self.RemoteFilesList.findItems(file.filename, Qt.MatchContains)) == 0:
+                QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
 
     def updateLocalFiles(self):
         localPath = "/Users/shehan/"
@@ -206,11 +206,12 @@ class Program(QDialog):
                 QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
         return True 
     def localFileSelectionChanged(self):
-        self.localSelectedFile.append(self.LocalFilesList.selectedItems())
-        item = self.localSelectedFile[0][0]
+        # self.LocalFilesList.selectedItems()[0]
+        self.localSelectedFile = self.LocalFilesList.selectedItems()[0]
+        item = self.localSelectedFile
         if item.text() == "..":
             self.getLocalFileList("..")
-            self.localSelectedFile = []
+            self.localSelectedFile = ""
         else:
             if item.background().color().getRgb() == (100, 100, 150, 255):
                 # selection is dir, switch dirs 
@@ -231,7 +232,12 @@ class Program(QDialog):
                 except PermissionError:
                     errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission Denied for file transfer")
                     errorMessage.exec_()
-            self.localSelectedFile = []    
+                self.localSelectedFile = ""   
+            else:
+            # selected item is a file
+                
+                print(self.localSelectedFile)
+            
 
     def remoteFileSelectionChanged(self):
         self.remoteSelectedFile.append(self.RemoteFilesList.selectedItems())
@@ -257,10 +263,11 @@ class Program(QDialog):
                             QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
             self.remoteSelectedFile = []
 
-    def localToRemoteTransfer(self, localFileName):
-        with self.connection.cd("/root"):
+    def localToRemoteTransfer(self, localFile):
+        with self.connection.cd(self.currentRemotePath):
             try:
-                self.connection.put(localFileName[0].text()) 
+                localFileName = localFile.text().split(" -")[0]
+                self.connection.put(localFileName) 
                 self.updateRemoteFiles()
             except IsADirectoryError:
                 errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
@@ -303,7 +310,7 @@ class Program(QDialog):
         self.leftArrowButton.setCursor(Qt.ArrowCursor)
         self.leftArrowButton.resize(45, 45)
         self.leftArrowButton.move(330, 165)
-        self.leftArrowButton.clicked.connect(lambda:self.localToRemoteTransfer(self.localSelectedFile[0]))
+        self.leftArrowButton.clicked.connect(lambda:self.localToRemoteTransfer(self.localSelectedFile))
         self.leftArrowButton.setEnabled(False)
 
     def createTopLeftGroupBox(self):
