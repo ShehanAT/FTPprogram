@@ -1,0 +1,1 @@
+This is a test to determine whether Shehan's FTP program is able to transfer remote files to local system.
