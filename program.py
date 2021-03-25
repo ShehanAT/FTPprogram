@@ -11,16 +11,20 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
     QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
     QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
-    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame, QFileDialog)
+    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame, QFileDialog, QMainWindow)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QBrush
-class Program(QDialog):
-
+from PyQt5 import QtCore 
+# class Program(QDialog):
+class Program(QMainWindow, ):
     def __init__(self, parent=None):
         super(Program, self).__init__(parent)
 
         self.originalPalette = QApplication.palette()
-        
+        self.setWindowTitle("FTP Program")
+        self.setFixedWidth(1500)
+        self.setFixedHeight(700
+        )
         styleComboBox = QComboBox()
         styleComboBox.addItems(QStyleFactory.keys())
 
@@ -43,8 +47,7 @@ class Program(QDialog):
         self.currentLocalPath = "/"    
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
-        
-        self.setWindowTitle("Shehan's FTP Program")
+    
         self.changeStyle("Windows")
 
     def startFTP(self, hostname, username, password):
@@ -100,28 +103,30 @@ class Program(QDialog):
         self.notificationLabel.setText("Please enter remote credentials to continue...")
         self.notificationLabel.setAlignment(Qt.AlignTop)
         self.notificationLabel.resize(400, 20)
-     
+        self.notificationLabel.setGeometry(QWidget.QtCore(70, 80, 100, 100))
 
     def createBottomLeftBox(self):
         self.RemoteFilesList = QListWidget(self)
         self.RemoteFilesList.move(20, 110)
-        self.RemoteFilesList.resize(600, 280)
+        self.RemoteFilesList.resize(650, 570)
         self.remoteSelectedFile = [] 
 
         self.RemoteFilesLabel = QLabel(self)
         self.RemoteFilesLabel.setText("Remote Files Section:\n{file} - {size}")
         self.RemoteFilesLabel.move(20, 70)
+        self.RemoteFilesLabel.adjustSize()
         self.RemoteFilesList.itemDoubleClicked.connect(self.remoteFileSelectionChanged)
 
     def createBottomRightBox(self):        
         self.LocalFilesList = QListWidget(self)
-        self.LocalFilesList.move(400, 110)
-        self.LocalFilesList.resize(600, 280)
+        self.LocalFilesList.move(800, 110)
+        self.LocalFilesList.resize(650, 570)
         self.localSelectedFile = []
 
         self.LocalFilesLabel = QLabel(self)
         self.LocalFilesLabel.setText("Local Files Section:\n{file} - {size}") 
-        self.LocalFilesLabel.move(400, 70)
+        self.LocalFilesLabel.move(800, 70)
+        self.LocalFilesLabel.adjustSize()
         self.LocalFilesList.itemDoubleClicked.connect(self.localFileSelectionChanged)
 
     def getLocalFileList(self, localPath):
@@ -364,7 +369,7 @@ class Program(QDialog):
         self.rightArrowButton.setStyleSheet("border: 1px solid black; padding: 1px; background-color: #6BA4FC")
         self.rightArrowButton.setCursor(Qt.ArrowCursor)
         self.rightArrowButton.resize(45, 45)
-        self.rightArrowButton.move(330, 100)
+        self.rightArrowButton.move(710, 150)
         self.rightArrowButton.clicked.connect(lambda:self.remoteToLocalTransfer(self.remoteSelectedFile))
         self.rightArrowButton.setEnabled(False)
 
@@ -373,7 +378,7 @@ class Program(QDialog):
         self.leftArrowButton.setStyleSheet("border: 1px solid black; padding: 1px; background-color: #6BA4FC")
         self.leftArrowButton.setCursor(Qt.ArrowCursor)
         self.leftArrowButton.resize(45, 45)
-        self.leftArrowButton.move(330, 165)
+        self.leftArrowButton.move(710, 215)
         self.leftArrowButton.clicked.connect(lambda:self.localToRemoteTransfer(self.localSelectedFile))
         self.leftArrowButton.setEnabled(False)
 
@@ -394,24 +399,24 @@ class Program(QDialog):
 
     def createTopTextBoxes(self):
         self.hostnameTextBox = QLineEdit(self)
-        self.hostnameTextBox.move(0, 20)
+        self.hostnameTextBox.move(200, 20)
         self.hostnameTextBox.resize(280, 40)
         self.hostnameTextBox.setPlaceholderText("Hostname: ")
 
         self.usernameTextBox = QLineEdit(self)
-        self.usernameTextBox.move(300, 20)
+        self.usernameTextBox.move(550, 20)
         self.usernameTextBox.resize(280, 40)
         self.usernameTextBox.setPlaceholderText("Username: ")
 
         self.passwordTextBox = QLineEdit(self)
         self.passwordTextBox.setEchoMode(QLineEdit.Password)
-        self.passwordTextBox.move(600, 20)
+        self.passwordTextBox.move(875, 20)
         self.passwordTextBox.resize(280, 40)
         self.passwordTextBox.setPlaceholderText("Password: ")
 
         self.quickConnectButton = QPushButton(self)
         self.quickConnectButton.setDefault(True)
-        self.quickConnectButton.move(890, 20)
+        self.quickConnectButton.move(1300, 20)
         self.quickConnectButton.resize(150, 40)
         self.quickConnectButton.setText("Quick Connect")
         self.quickConnectButton.setStyleSheet('QPushButton {background-color: #fff; color: black; border: 1px solid blue;}')
