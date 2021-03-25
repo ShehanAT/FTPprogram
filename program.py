@@ -11,20 +11,19 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
     QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
     QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
     QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
-    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame, QFileDialog, QMainWindow)
+    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame, QFileDialog, QMainWindow, QGraphicsColorizeEffect, QMessageBox)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QBrush
 from PyQt5 import QtCore 
 # class Program(QDialog):
-class Program(QMainWindow, ):
+class Program(QMainWindow):
     def __init__(self, parent=None):
         super(Program, self).__init__(parent)
 
         self.originalPalette = QApplication.palette()
         self.setWindowTitle("FTP Program")
         self.setFixedWidth(1500)
-        self.setFixedHeight(700
-        )
+        self.setFixedHeight(750)
         styleComboBox = QComboBox()
         styleComboBox.addItems(QStyleFactory.keys())
 
@@ -57,7 +56,7 @@ class Program(QMainWindow, ):
             self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
             self.getLocalFileList("/Users/shehan/")
             self.getRemoteFileList()
-            self.notificationLabel.setText("Please select file to transfer and click the arrow buttons...")
+            self.notificationLabel.setText("Double-click on a file and click the arrow buttons to file transfer")
             self.rightArrowButton.setEnabled(True)
             self.leftArrowButton.setEnabled(True)
         except paramiko.ssh_exception.SSHException:
@@ -71,12 +70,20 @@ class Program(QMainWindow, ):
             errorMessage.exec_()
 
     def updateRemoteFiles(self):
+        transfer_success_msg = QMessageBox()
+        transfer_success_msg.setWindowTitle("File Transfered")
+        transfer_success_msg.setText("File transferred successfully!")
+        transfer_success_msg.exec_()
         remoteFiles = self.connection.listdir_attr("./")
         for file in remoteFiles:
             if len(self.RemoteFilesList.findItems(file.filename, Qt.MatchContains)) == 0:
                 QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon("/Users/shehan/Documents/FTPprogram/icons/file.png"))
 
     def updateLocalFiles(self):
+        transfer_success_msg = QMessageBox("File transferred successfully!")
+        transfer_success_msg.setWindowTitle("File Transfered")
+        transfer_success_msg.setText("File transferred successfully!")
+        transfer_success_msg.exec_()
         localFiles = os.scandir(self.currentLocalPath)
         for file in localFiles:
             if len(self.LocalFilesList.findItems(file.name, Qt.MatchContains)) == 0:
@@ -99,33 +106,38 @@ class Program(QMainWindow, ):
 
     def createNotificationBox(self):
         self.notificationLabel = QLabel(self)
-        self.notificationLabel.setFrameStyle(QFrame.Panel|QFrame.Sunken)
+        # self.notificationLabel.setFrameStyle(QFrame.Panel|QFrame.Sunken)
         self.notificationLabel.setText("Please enter remote credentials to continue...")
         self.notificationLabel.setAlignment(Qt.AlignTop)
         self.notificationLabel.resize(400, 20)
-        self.notificationLabel.setGeometry(QWidget.QtCore(70, 80, 100, 100))
+        self.notificationLabel.setGeometry(500, 25, 600, 100)
+        self.notificationLabel.setFont(QFont('Times', 12))
+        red_font = QGraphicsColorizeEffect()
+        red_font.setColor(QColor(255, 15, 15))
+        self.notificationLabel.setGraphicsEffect(red_font)
+
 
     def createBottomLeftBox(self):
         self.RemoteFilesList = QListWidget(self)
-        self.RemoteFilesList.move(20, 110)
+        self.RemoteFilesList.move(20, 160)
         self.RemoteFilesList.resize(650, 570)
         self.remoteSelectedFile = [] 
 
         self.RemoteFilesLabel = QLabel(self)
         self.RemoteFilesLabel.setText("Remote Files Section:\n{file} - {size}")
-        self.RemoteFilesLabel.move(20, 70)
+        self.RemoteFilesLabel.move(20, 120)
         self.RemoteFilesLabel.adjustSize()
         self.RemoteFilesList.itemDoubleClicked.connect(self.remoteFileSelectionChanged)
 
     def createBottomRightBox(self):        
         self.LocalFilesList = QListWidget(self)
-        self.LocalFilesList.move(800, 110)
+        self.LocalFilesList.move(800, 160)
         self.LocalFilesList.resize(650, 570)
         self.localSelectedFile = []
 
         self.LocalFilesLabel = QLabel(self)
         self.LocalFilesLabel.setText("Local Files Section:\n{file} - {size}") 
-        self.LocalFilesLabel.move(800, 70)
+        self.LocalFilesLabel.move(800, 120)
         self.LocalFilesLabel.adjustSize()
         self.LocalFilesList.itemDoubleClicked.connect(self.localFileSelectionChanged)
 
@@ -369,7 +381,7 @@ class Program(QMainWindow, ):
         self.rightArrowButton.setStyleSheet("border: 1px solid black; padding: 1px; background-color: #6BA4FC")
         self.rightArrowButton.setCursor(Qt.ArrowCursor)
         self.rightArrowButton.resize(45, 45)
-        self.rightArrowButton.move(710, 150)
+        self.rightArrowButton.move(710, 250)
         self.rightArrowButton.clicked.connect(lambda:self.remoteToLocalTransfer(self.remoteSelectedFile))
         self.rightArrowButton.setEnabled(False)
 
@@ -378,7 +390,7 @@ class Program(QMainWindow, ):
         self.leftArrowButton.setStyleSheet("border: 1px solid black; padding: 1px; background-color: #6BA4FC")
         self.leftArrowButton.setCursor(Qt.ArrowCursor)
         self.leftArrowButton.resize(45, 45)
-        self.leftArrowButton.move(710, 215)
+        self.leftArrowButton.move(710, 315)
         self.leftArrowButton.clicked.connect(lambda:self.localToRemoteTransfer(self.localSelectedFile))
         self.leftArrowButton.setEnabled(False)
 
@@ -399,24 +411,24 @@ class Program(QMainWindow, ):
 
     def createTopTextBoxes(self):
         self.hostnameTextBox = QLineEdit(self)
-        self.hostnameTextBox.move(200, 20)
+        self.hostnameTextBox.move(200, 70)
         self.hostnameTextBox.resize(280, 40)
         self.hostnameTextBox.setPlaceholderText("Hostname: ")
 
         self.usernameTextBox = QLineEdit(self)
-        self.usernameTextBox.move(550, 20)
+        self.usernameTextBox.move(550, 70)
         self.usernameTextBox.resize(280, 40)
         self.usernameTextBox.setPlaceholderText("Username: ")
 
         self.passwordTextBox = QLineEdit(self)
         self.passwordTextBox.setEchoMode(QLineEdit.Password)
-        self.passwordTextBox.move(875, 20)
+        self.passwordTextBox.move(875, 70)
         self.passwordTextBox.resize(280, 40)
         self.passwordTextBox.setPlaceholderText("Password: ")
 
         self.quickConnectButton = QPushButton(self)
         self.quickConnectButton.setDefault(True)
-        self.quickConnectButton.move(1300, 20)
+        self.quickConnectButton.move(1300, 70)
         self.quickConnectButton.resize(150, 40)
         self.quickConnectButton.setText("Quick Connect")
         self.quickConnectButton.setStyleSheet('QPushButton {background-color: #fff; color: black; border: 1px solid blue;}')
