@@ -48,9 +48,6 @@ class Program(QDialog):
         self.changeStyle("Windows")
 
     def startFTP(self, hostname, username, password):
-        # Hostname: 138.197.157.45
-        # Username: root 
-        # Password: Nanderlone123
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
         try: 
@@ -108,7 +105,7 @@ class Program(QDialog):
     def createBottomLeftBox(self):
         self.RemoteFilesList = QListWidget(self)
         self.RemoteFilesList.move(20, 110)
-        self.RemoteFilesList.resize(280, 280)
+        self.RemoteFilesList.resize(600, 280)
         self.remoteSelectedFile = [] 
 
         self.RemoteFilesLabel = QLabel(self)
@@ -119,7 +116,7 @@ class Program(QDialog):
     def createBottomRightBox(self):        
         self.LocalFilesList = QListWidget(self)
         self.LocalFilesList.move(400, 110)
-        self.LocalFilesList.resize(280, 280)
+        self.LocalFilesList.resize(600, 280)
         self.localSelectedFile = []
 
         self.LocalFilesLabel = QLabel(self)
