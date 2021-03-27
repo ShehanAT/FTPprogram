@@ -42,10 +42,13 @@ class Program(QMainWindow):
         self.createBottomRightBox()
         self.createBottonCenterBox()
         self.createTopTextBoxes()
+        self.createDeleteButton()
         self.createProgressBar()
+        
 
         self.currentRemotePath = "/"   
-        self.currentLocalPath = "/"    
+        self.currentLocalPath = "/"  
+        self.currentFile = "/"  
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
     
@@ -62,8 +65,12 @@ class Program(QMainWindow):
             self.rightArrowButton.setEnabled(True)
             self.leftArrowButton.setEnabled(True)
         except paramiko.ssh_exception.SSHException:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Unable to connect to " + hostname)
-            errorMessage.exec_()
+            if hostname == "":                    
+                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Hostname field cannot be empty!")
+                errorMessage.exec_()
+            else:
+                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Connection attempt to host: " + hostname +  " failed!")
+                errorMessage.exec_()
         except paramiko.ssh_exception.AuthenticationException:
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Authentication Failed! Please make sure to enter a valid hostname, username and password")
             errorMessage.exec_()
@@ -135,6 +142,7 @@ class Program(QMainWindow):
         self.RemoteFilesLabel.move(20, 120)
         self.RemoteFilesLabel.adjustSize()
         self.RemoteFilesList.itemDoubleClicked.connect(self.remoteFileSelectionChanged)
+        self.RemoteFilesList.itemClicked.connect(self.remoteFileSelectionChangedSingleClick)
 
     def createBottomRightBox(self):        
         self.LocalFilesList = QListWidget(self)
@@ -147,6 +155,7 @@ class Program(QMainWindow):
         self.LocalFilesLabel.move(800, 120)
         self.LocalFilesLabel.adjustSize()
         self.LocalFilesList.itemDoubleClicked.connect(self.localFileSelectionChanged)
+        self.LocalFilesList.itemClicked.connect(self.localFileSelectionChangedSingleClick)
 
     def getLocalFileList(self, localPath):
         previous_dir = False 
@@ -231,6 +240,10 @@ class Program(QMainWindow):
             elif fileType == 3:
                 QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
         return True 
+
+    def localFileSelectionChangedSingleClick(self):
+        self.currentFile = self.LocalFilesList.selectedItems()[0]
+
     def localFileSelectionChanged(self):
         self.localSelectedFile = self.LocalFilesList.selectedItems()[0]
         item = self.localSelectedFile
@@ -259,6 +272,8 @@ class Program(QMainWindow):
                     errorMessage.exec_()
                 self.localSelectedFile = ""   
          
+    def remoteFileSelectionChangedSingleClick(self):
+        self.currentFile = self.RemoteFilesList.selectedItems()[0]
 
     def remoteFileSelectionChanged(self):
         self.remoteSelectedFile = self.RemoteFilesList.selectedItems()[0]
@@ -330,7 +345,23 @@ class Program(QMainWindow):
             errorMessage.exec_()
         except Exception:
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Ran into error while file transfering")     
-            errorMessage.exec_()       
+            errorMessage.exec_() 
+
+
+    def deleteFile(self, deleteFile):
+        if self.currentFile != "/":
+            print("Deleting file: " + str(self.currentFile.text()))
+
+    def createDeleteButton(self):
+        self.deleteButton = QPushButton(self)
+        self.deleteButton.setIcon(QIcon(os.getcwd() + "/icons/delete.png"))
+        self.deleteButton.setCursor(Qt.ArrowCursor)
+        self.deleteButton.resize(35, 35)
+        self.deleteButton.move(20, 70)
+        self.deleteButton.clicked.connect(lambda:self.deleteFile("abc.txt"))
+        self.deleteButton.setEnabled(True)
+        self.deleteButton.show()
+
 
     def createBottonCenterBox(self):
         self.rightArrowButton = QToolButton(self)
