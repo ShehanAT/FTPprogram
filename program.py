@@ -57,12 +57,19 @@ class Program(QMainWindow):
     
         self.changeStyle("Windows")
 
+    def clearLists(self):
+        self.LocalFilesList.clear()
+        self.RemoteFilesList.clear()
+        self.currentLocalPath = "/"
+        self.currentRemotePath = "/"
+
     def startFTP(self, hostname, username, password):
+        self.clearLists()
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
         try: 
             self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
-            self.getLocalFileList("/Users/shehan/")
+            self.getLocalFileList()
             self.getRemoteFileList()
             self.notificationLabel.setText("Double-click on a file and click the arrow buttons to file transfer")
             self.rightArrowButton.setEnabled(True)
@@ -164,7 +171,7 @@ class Program(QMainWindow):
         self.LocalFilesList.itemDoubleClicked.connect(self.localFileSelectionChanged)
         self.LocalFilesList.itemClicked.connect(self.localFileSelectionChangedSingleClick)
 
-    def getLocalFileList(self, localPath):
+    def getLocalFileList(self, localPath=None):
         previous_dir = False 
         base_dir = False 
         if localPath == "..":
