@@ -43,7 +43,7 @@ class Program(QMainWindow):
         self.createBottonCenterBox()
         self.createTopTextBoxes()
         self.createDeleteButton()
-        self.createProgressBar()
+        # self.createProgressBar()
         
 
         self.currentRemotePath = "/"   
@@ -51,6 +51,9 @@ class Program(QMainWindow):
         self.currentFile = "/"  
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
+
+        self.directoryIcon = QIcon(self.currentDir + "/icons/directory.png")
+        self.fileIcon = QIcon(self.currentDir + "/icons/file.png")
     
         self.changeStyle("Windows")
 
@@ -102,7 +105,11 @@ class Program(QMainWindow):
         for file in localFiles:
             if len(self.LocalFilesList.findItems(file.name, Qt.MatchContains)) == 0:
                 QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
-        
+    
+    # used to clear all previous files when user clicks "Quick Connect" after initial FTP attempt 
+    def clearAllFiles(self):
+        pass
+
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
         self.changePalette()
@@ -350,7 +357,19 @@ class Program(QMainWindow):
 
     def deleteFile(self, deleteFile):
         if self.currentFile != "/":
-            print("Deleting file: " + str(self.currentFile.text()))
+            deleteFile = self.currentFile 
+            deleteFileName = str(self.currentFile.text())
+            deleteFilePath = deleteFileName.split(" -")[0]
+            confirmDelete = QMessageBox.question(self, "Confirm Action", "Are you sure you want to delete this file: " + deleteFilePath, QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
+            print(int(confirmDelete))
+            if confirmDelete == QMessageBox.Yes:
+                os.remove(deleteFilePath)
+                self.updateLocalFiles()
+                self.updateRemoteFiles()
+            if confirmDelete == QMessageBox.No:
+                print("No clicked")
+            if confirmDelete == QMessageBox.Cancel:
+                print("Cancel")
 
     def createDeleteButton(self):
         self.deleteButton = QPushButton(self)
