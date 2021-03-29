@@ -47,7 +47,7 @@ class Program(QMainWindow):
         
 
         self.currentRemotePath = "/"   
-        self.currentLocalPath = "/"  
+        self.currentLocalPath = "\\"  
         self.currentFile = "/"  
         self.currentFileList = ""
         mainLayout = QGridLayout()
@@ -61,7 +61,7 @@ class Program(QMainWindow):
     def clearAllData(self):
         self.LocalFilesList.clear()
         self.RemoteFilesList.clear()
-        self.currentLocalPath = "/"
+        self.currentLocalPath = "\\"
         self.currentRemotePath = "/"
         self.currentFile = ""
         self.currentFileList = ""
@@ -108,6 +108,7 @@ class Program(QMainWindow):
         # self.currentLocalPath += "\"
         self.clearLocalList()
         localFiles = os.scandir(self.currentLocalPath)
+        QListWidgetItem("..", self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
         for file in localFiles:
             fileType = list(file.stat())[0] // 10000
             if fileType == 1:
@@ -277,7 +278,6 @@ class Program(QMainWindow):
                 if self.currentLocalPath == "/":
                     self.currentLocalPath = item.text().split(" -")[0] + self.currentLocalPath
                 else:
-                    # self.currentLocalPath = item.text().split(" -")[0] + "/"
                     self.currentLocalPath = item.text().split(" -")[0] + "\\"
                 self.LocalFilesList.clear()
                 QListWidgetItem("..", self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
