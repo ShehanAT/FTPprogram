@@ -100,12 +100,22 @@ class Program(QMainWindow):
     def updateRemoteFiles(self):
         
         remoteFiles = self.connection.listdir_attr("./")
+        self.createRemoteFilesList(remoteFiles)
+        '''
+        QListWidgetItem("..", self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
+        for file in remoteFiles:
+            fileType = file.st_mode // 10000
+            if fileType == 1:
+                QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
+                self.RemoteFilesList.findItems(self.currentRemotePath + file.filename + " - " + str(file.st_size), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
+            elif fileType == 3:
+                QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
+        
         for file in remoteFiles:
             if len(self.RemoteFilesList.findItems(file.filename, Qt.MatchContains)) == 0:
                 QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
-
+        '''
     def updateLocalFiles(self):
-        # self.currentLocalPath += "\"
         self.clearLocalList()
         localFiles = os.scandir(self.currentLocalPath)
         QListWidgetItem("..", self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
@@ -116,8 +126,6 @@ class Program(QMainWindow):
                 self.LocalFilesList.findItems(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
             if fileType == 3:
                 QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
-            # if len(self.LocalFilesList.findItems(file.name, Qt.MatchContains)) == 0:
-            # QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
 
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
@@ -136,7 +144,6 @@ class Program(QMainWindow):
 
     def createNotificationBox(self):
         self.notificationLabel = QLabel(self)
-        # self.notificationLabel.setFrameStyle(QFrame.Panel|QFrame.Sunken)
         self.notificationLabel.setText("Please enter remote credentials to continue...")
         self.notificationLabel.setAlignment(Qt.AlignTop)
         self.notificationLabel.resize(400, 20)
@@ -178,6 +185,9 @@ class Program(QMainWindow):
         base_dir = False 
         delete_dir = False 
         if localPath == "..":
+            if self.currentLocalPath.endswith("\\"):
+                self.currentLocalPath = self.currentLocalPath[:-1] 
+                # remove the 'def\\' in path: 'abc\def\\' 
             newLocalArr = list(os.path.split(self.currentLocalPath))
             arrLength = len(newLocalArr)
             i = 0
@@ -252,6 +262,8 @@ class Program(QMainWindow):
             remoteFiles = self.connection.listdir_attr("./")
             remoteDir = self.connection.normalize(".")
             self.currentRemotePath = self.connection.pwd + self.currentRemotePath
+        self.createRemoteFilesList(remoteFiles)
+        '''
         QListWidgetItem("..", self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
         for file in remoteFiles:
             fileType = file.st_mode // 10000
@@ -260,7 +272,21 @@ class Program(QMainWindow):
                 self.RemoteFilesList.findItems(self.currentRemotePath + file.filename + " - " + str(file.st_size), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
             elif fileType == 3:
                 QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
+        '''
         return True 
+
+    def createRemoteFilesList(self, remoteFiles):
+        QListWidgetItem("..", self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
+        for file in remoteFiles:
+            fileType = file.st_mode // 10000
+            if fileType == 1:
+                QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
+                self.RemoteFilesList.findItems(self.currentRemotePath + file.filename + " - " + str(file.st_size), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
+            elif fileType == 3:
+                QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
+
+    def createLocalFilesList(self, localFiles):
+        pass
 
     def localFileSelectionChangedSingleClick(self):
         self.currentFile = self.LocalFilesList.selectedItems()[0]
