@@ -49,6 +49,7 @@ class Program(QMainWindow):
         self.currentRemotePath = "/"   
         self.currentLocalPath = "/"  
         self.currentFile = "/"  
+        self.currentFileList = ""
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
 
@@ -57,14 +58,19 @@ class Program(QMainWindow):
     
         self.changeStyle("Windows")
 
-    def clearLists(self):
+    def clearAllData(self):
         self.LocalFilesList.clear()
         self.RemoteFilesList.clear()
         self.currentLocalPath = "/"
         self.currentRemotePath = "/"
+        self.currentFile = ""
+        self.currentFileList = ""
+
+    def clearLocalList(self):
+        self.LocalFilesList.clear()
 
     def startFTP(self, hostname, username, password):
-        self.clearLists()
+        self.clearAllData()
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
         try: 
@@ -92,30 +98,25 @@ class Program(QMainWindow):
             errorMessage.exec_()
 
     def updateRemoteFiles(self):
-        transfer_success_msg = QMessageBox()
-        transfer_success_msg.setWindowTitle("File Transferred")
-        transfer_success_msg.setText("File transferred successfully!")
-        transfer_success_msg.setIcon(QMessageBox.Information)
-        transfer_success_msg.exec_()
+        
         remoteFiles = self.connection.listdir_attr("./")
         for file in remoteFiles:
             if len(self.RemoteFilesList.findItems(file.filename, Qt.MatchContains)) == 0:
                 QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
 
     def updateLocalFiles(self):
-        transfer_success_msg = QMessageBox()
-        transfer_success_msg.setWindowTitle("File Transferred")
-        transfer_success_msg.setText("File transferred successfully!")
-        transfer_success_msg.setIcon(QMessageBox.Information)
-        transfer_success_msg.exec_()
+        # self.currentLocalPath += "\"
+        self.clearLocalList()
         localFiles = os.scandir(self.currentLocalPath)
         for file in localFiles:
-            if len(self.LocalFilesList.findItems(file.name, Qt.MatchContains)) == 0:
-                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
-    
-    # used to clear all previous files when user clicks "Quick Connect" after initial FTP attempt 
-    def clearAllFiles(self):
-        pass
+            fileType = list(file.stat())[0] // 10000
+            if fileType == 1:
+                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
+                self.LocalFilesList.findItems(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
+            if fileType == 3:
+                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
+            # if len(self.LocalFilesList.findItems(file.name, Qt.MatchContains)) == 0:
+            # QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/file.png"))
 
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
@@ -171,9 +172,10 @@ class Program(QMainWindow):
         self.LocalFilesList.itemDoubleClicked.connect(self.localFileSelectionChanged)
         self.LocalFilesList.itemClicked.connect(self.localFileSelectionChangedSingleClick)
 
-    def getLocalFileList(self, localPath=None):
+    def getLocalFileList(self, localPath=None, afterDelete=False):
         previous_dir = False 
         base_dir = False 
+        delete_dir = False 
         if localPath == "..":
             newLocalArr = list(os.path.split(self.currentLocalPath))
             arrLength = len(newLocalArr)
@@ -194,6 +196,10 @@ class Program(QMainWindow):
             previous_dir = True
             if self.currentLocalPath == "C:\\":
                 base_dir = True  
+        elif afterDelete:
+            currentLocalPathLen = len(self.currentLocalPath)
+            localFiles = os.scandir(self.currentLocalPath)
+            delete_dir = True 
         else:  
             localFiles = os.scandir("./")
             self.currentLocalPath = os.getcwd() + self.currentLocalPath
@@ -201,7 +207,7 @@ class Program(QMainWindow):
         QListWidgetItem("..", self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
         for file in localFiles:
             fileType = list(file.stat())[0] // 10000
-            if previous_dir and base_dir == False:
+            if previous_dir and base_dir == False and delete_dir == False:
                 if fileType == 1: # for folders
                     QListWidgetItem(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
                     self.LocalFilesList.findItems(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
@@ -257,6 +263,7 @@ class Program(QMainWindow):
 
     def localFileSelectionChangedSingleClick(self):
         self.currentFile = self.LocalFilesList.selectedItems()[0]
+        self.currentFileList = "Local"
 
     def localFileSelectionChanged(self):
         self.localSelectedFile = self.LocalFilesList.selectedItems()[0]
@@ -270,7 +277,8 @@ class Program(QMainWindow):
                 if self.currentLocalPath == "/":
                     self.currentLocalPath = item.text().split(" -")[0] + self.currentLocalPath
                 else:
-                    self.currentLocalPath = item.text().split(" -")[0] + "/"
+                    # self.currentLocalPath = item.text().split(" -")[0] + "/"
+                    self.currentLocalPath = item.text().split(" -")[0] + "\\"
                 self.LocalFilesList.clear()
                 QListWidgetItem("..", self.LocalFilesList).setIcon(QIcon(self.currentDir + "/icons/directory.png"))
                 try:
@@ -288,6 +296,7 @@ class Program(QMainWindow):
          
     def remoteFileSelectionChangedSingleClick(self):
         self.currentFile = self.RemoteFilesList.selectedItems()[0]
+        self.currentFileList = "Remote"
 
     def remoteFileSelectionChanged(self):
         self.remoteSelectedFile = self.RemoteFilesList.selectedItems()[0]
@@ -314,11 +323,16 @@ class Program(QMainWindow):
                 self.remoteSelectedFile = ""
 
     def localToRemoteTransfer(self, localFile):
+        if localFile == []:
+            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "No file selected to file transfer. Make sure you double-click the file to transfer!")
+            errorMessage.exec_()
+            return 
         with self.connection.cd(self.currentRemotePath):
             try:
                 localFileName = localFile.text().split(" -")[0]
                 self.connection.put(localFileName) 
                 self.updateRemoteFiles()
+                self.showFileTransferSuccessMsg()
             except IsADirectoryError:
                 errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
                 errorMessage.exec_()
@@ -326,10 +340,20 @@ class Program(QMainWindow):
                 errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission denied for file transfer")
                 errorMessage.exec_()
             except Exception:
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Ran into an error while file transfer")
+                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Ran into an error while file transfering")
         
+    def checkForForwardSlash(self):
+        if self.currentLocalPath[-1] == "/":
+            size = len(self.currentLocalPath)
+            self.currentLocalPath = self.currentLocalPath[:size - 1]
+
     def remoteToLocalTransfer(self, remoteFile):
+        if remoteFile == []:
+            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "No file selected to file transfer. Make sure you double-click the file to transfer!")
+            errorMessage.exec_()
+            return 
         try: 
+            self.checkForForwardSlash()
             remoteFileName = remoteFile.text().split(" -")[0]
             newLocalArr = remoteFileName.split("/")
             arrLength = len(newLocalArr)
@@ -340,10 +364,14 @@ class Program(QMainWindow):
                     arrLength -= 1
                     continue 
                 i += 1
+            # newLocalFileName = "\\" + newLocalArr[-1]
+            if self.currentLocalPath[-1] != "\\":
+                self.currentLocalPath += "\\"
             newLocalFileName = newLocalArr[-1]
             with self.connection.cd(self.currentRemotePath):
                 self.connection.get(remoteFileName, self.currentLocalPath + newLocalFileName)
                 self.updateLocalFiles()
+                self.showFileTransferSuccessMsg()
         except IsADirectoryError:
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
             errorMessage.exec_()
@@ -361,18 +389,41 @@ class Program(QMainWindow):
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Ran into error while file transfering")     
             errorMessage.exec_() 
 
+    def showFileTransferSuccessMsg(self):
+        transfer_success_msg = QMessageBox()
+        transfer_success_msg.setWindowTitle("File Transferred")
+        transfer_success_msg.setText("File transferred successfully!")
+        transfer_success_msg.setIcon(QMessageBox.Information)
+        transfer_success_msg.exec_()
+
+    def showDeleteFileSuccessMsg(self):
+        deleteFile_success_msg = QMessageBox()
+        deleteFile_success_msg.setWindowTitle("File deleted")
+        deleteFile_success_msg.setText("File deleted successfully!")
+        deleteFile_success_msg.setIcon(QMessageBox.Information)
+        deleteFile_success_msg.exec_()
 
     def deleteFile(self, deleteFile):
         if self.currentFile != "/":
-            deleteFile = self.currentFile 
+            deleteFile = self.currentFile
+            if self.currentFileList == "Remote":
+                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Cannot delete files and folder in remote server!")
+                errorMessage.exec_()
+                return 
+            if deleteFile.background().color().getRgb() == (100, 100, 150, 255):
+                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Cannot delete folders! Only files can be deleted...")
+                errorMessage.exec_()
+                return 
             deleteFileName = str(self.currentFile.text())
             deleteFilePath = deleteFileName.split(" -")[0]
+          
             confirmDelete = QMessageBox.question(self, "Confirm Action", "Are you sure you want to delete this file: " + deleteFilePath, QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
-            print(int(confirmDelete))
+
             if confirmDelete == QMessageBox.Yes:
                 os.remove(deleteFilePath)
-                self.updateLocalFiles()
-                self.updateRemoteFiles()
+                self.showDeleteFileSuccessMsg()
+                self.clearLocalList()
+                self.getLocalFileList(None, True)
             if confirmDelete == QMessageBox.No:
                 print("No clicked")
             if confirmDelete == QMessageBox.Cancel:
