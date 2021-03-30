@@ -62,7 +62,7 @@ def createDeleteButton(self):
     self.deleteButton.setCursor(Qt.ArrowCursor)
     self.deleteButton.resize(35, 35)
     self.deleteButton.move(20, 70)
-    self.deleteButton.clicked.connect(lambda:self.deleteFile("abc.txt"))
+    
     self.deleteButton.setEnabled(True)
     self.deleteButton.show()
 
@@ -102,3 +102,6 @@ def createNotificationBox(self):
     red_font = QGraphicsColorizeEffect()
     red_font.setColor(QColor(255, 15, 15))
     self.notificationLabel.setGraphicsEffect(red_font)
+
+
+

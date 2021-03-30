@@ -15,8 +15,10 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QBrush
 from PyQt5 import QtCore 
-from transfer import startFTP, remoteToLocalTransfer, localToRemoteTransfer
-from draw import createTopTextBoxes, createBottomCenterBox, createDeleteButton, createNotificationBox, createBottomLeftBox, createBottomRightBox
+from transfer import startFTP, remoteToLocalTransfer, localToRemoteTransfer, showFileTransferSuccessMsg
+from delete import deleteFile, showDeleteFileSuccessMsg
+from draw import (createTopTextBoxes, createBottomCenterBox, createDeleteButton, 
+                    createNotificationBox, createBottomLeftBox, createBottomRightBox)
 
 
 class Program(QMainWindow):
@@ -56,7 +58,8 @@ class Program(QMainWindow):
         self.quickConnectButton.clicked.connect(lambda:startFTP(self, self.hostnameTextBox.text(), self.usernameTextBox.text(), self.passwordTextBox.text()))
         self.rightArrowButton.clicked.connect(lambda:remoteToLocalTransfer(self, self.remoteSelectedFile))
         self.leftArrowButton.clicked.connect(lambda:localToRemoteTransfer(self, self.localSelectedFile))
-        
+        self.deleteButton.clicked.connect(lambda:deleteFile(self))
+
         self.directoryIcon = QIcon(self.currentDir + "/icons/directory.png")
         self.fileIcon = QIcon(self.currentDir + "/icons/file.png")
     
@@ -249,7 +252,7 @@ class Program(QMainWindow):
                         if fileType == 3:
                             QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(self.fileIcon)
                 self.remoteSelectedFile = ""
-
+    '''
     def showFileTransferSuccessMsg(self):
         transfer_success_msg = QMessageBox()
         transfer_success_msg.setWindowTitle("File Transferred")
@@ -263,29 +266,4 @@ class Program(QMainWindow):
         deleteFile_success_msg.setText("File deleted successfully!")
         deleteFile_success_msg.setIcon(QMessageBox.Information)
         deleteFile_success_msg.exec_()
-
-    def deleteFile(self, deleteFile):
-        if self.currentFile != "/":
-            deleteFile = self.currentFile
-            if self.currentFileList == "Remote":
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Cannot delete files and folder in remote server!")
-                errorMessage.exec_()
-                return 
-            if deleteFile.background().color().getRgb() == (100, 100, 150, 255):
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Cannot delete folders! Only files can be deleted...")
-                errorMessage.exec_()
-                return 
-            deleteFileName = str(self.currentFile.text())
-            deleteFilePath = deleteFileName.split(" -")[0]
-          
-            confirmDelete = QMessageBox.question(self, "Confirm Action", "Are you sure you want to delete this file: " + deleteFilePath, QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
-
-            if confirmDelete == QMessageBox.Yes:
-                os.remove(deleteFilePath)
-                self.showDeleteFileSuccessMsg()
-                self.LocalFilesList.clear()
-                self.getLocalFileList(None, True)
-            if confirmDelete == QMessageBox.No:
-                print("No clicked")
-            if confirmDelete == QMessageBox.Cancel:
-                print("Cancel")
+    '''

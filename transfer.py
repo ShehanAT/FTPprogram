@@ -55,7 +55,7 @@ def remoteToLocalTransfer(self, remoteFile):
         with self.connection.cd(self.currentRemotePath):
             self.connection.get(remoteFileName, self.currentLocalPath + newLocalFileName)
             self.updateLocalFiles()
-            self.showFileTransferSuccessMsg()
+            showFileTransferSuccessMsg(self)
     except IsADirectoryError:
         errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
         errorMessage.exec_()
@@ -83,7 +83,7 @@ def localToRemoteTransfer(self, localFile):
             localFileName = localFile.text().split(" -")[0]
             self.connection.put(localFileName) 
             self.updateRemoteFiles()
-            self.showFileTransferSuccessMsg()
+            showFileTransferSuccessMsg(self)
         except IsADirectoryError:
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
             errorMessage.exec_()
@@ -92,3 +92,10 @@ def localToRemoteTransfer(self, localFile):
             errorMessage.exec_()
         except Exception:
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Ran into an error while file transfering")
+
+def showFileTransferSuccessMsg(self):
+    transfer_success_msg = QMessageBox()
+    transfer_success_msg.setWindowTitle("File Transferred")
+    transfer_success_msg.setText("File transferred successfully!")
+    transfer_success_msg.setIcon(QMessageBox.Information)
+    transfer_success_msg.exec_()
