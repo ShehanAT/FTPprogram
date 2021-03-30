@@ -15,7 +15,8 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QBrush
 from PyQt5 import QtCore 
-import os 
+from transfer import startFTP, remoteToLocalTransfer, localToRemoteTransfer
+from draw import createTopTextBoxes, createBottomCenterBox, createDeleteButton, createNotificationBox, createBottomLeftBox, createBottomRightBox
 
 
 class Program(QMainWindow):
@@ -37,13 +38,12 @@ class Program(QMainWindow):
 
         disableWidgetsCheckBox = QCheckBox("&Disable widgets")
         self.currentDir = os.path.dirname(os.path.realpath(__file__))
-        self.createNotificationBox()
-        self.createBottomLeftBox()
-        self.createBottomRightBox()
-        self.createBottonCenterBox()
-        self.createTopTextBoxes()
-        self.createDeleteButton()
-        
+        createNotificationBox(self)
+        createBottomLeftBox(self)
+        createBottomRightBox(self)
+        createBottomCenterBox(self)
+        createTopTextBoxes(self)
+        createDeleteButton(self)
 
         self.currentRemotePath = "/"   
         self.currentLocalPath = "\\"  
@@ -51,7 +51,12 @@ class Program(QMainWindow):
         self.currentFileList = ""
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
-
+        
+        # eventlisteners 
+        self.quickConnectButton.clicked.connect(lambda:startFTP(self, self.hostnameTextBox.text(), self.usernameTextBox.text(), self.passwordTextBox.text()))
+        self.rightArrowButton.clicked.connect(lambda:remoteToLocalTransfer(self, self.remoteSelectedFile))
+        self.leftArrowButton.clicked.connect(lambda:localToRemoteTransfer(self, self.localSelectedFile))
+        
         self.directoryIcon = QIcon(self.currentDir + "/icons/directory.png")
         self.fileIcon = QIcon(self.currentDir + "/icons/file.png")
     
@@ -64,34 +69,6 @@ class Program(QMainWindow):
         self.currentRemotePath = "/"
         self.currentFile = ""
         self.currentFileList = ""
-
-    def startFTP(self, hostname, username, password):
-        self.clearAllData()
-        cnopts = pysftp.CnOpts()
-        cnopts.hostkeys = None
-        try: 
-            self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
-            self.getLocalFileList()
-            self.getRemoteFileList()
-            self.notificationLabel.setText("Double-click on a file and click the arrow buttons to file transfer")
-            self.rightArrowButton.setEnabled(True)
-            self.leftArrowButton.setEnabled(True)
-        except paramiko.ssh_exception.SSHException:
-            if hostname == "":                    
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Hostname field cannot be empty!")
-                errorMessage.exec_()
-            else:
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Connection attempt to host: " + hostname +  " failed!")
-                errorMessage.exec_()
-        except paramiko.ssh_exception.AuthenticationException:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Authentication Failed! Please make sure to enter a valid hostname, username and password")
-            errorMessage.exec_()
-        except paramiko.sftp.SFTPError:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SFTP Error: Garbage package received")
-            errorMessage.exec_()
-        except pysftp.exceptions.ConnectionException:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Connection Exception: Remote server connection failed! Make sure all fields contain valid information with no additional spaces")
-            errorMessage.exec_()
 
     def updateRemoteFiles(self):
         self.RemoteFilesList.clear()
@@ -117,44 +94,6 @@ class Program(QMainWindow):
         currVal = self.progressBar.value()
         maxVal = self.progressBar.maximum()
         self.progressBar.setValue(currVal + (maxVal - currVal) / 100)
-
-    def createNotificationBox(self):
-        self.notificationLabel = QLabel(self)
-        self.notificationLabel.setText("Please enter remote credentials to continue...")
-        self.notificationLabel.setAlignment(Qt.AlignTop)
-        self.notificationLabel.resize(400, 20)
-        self.notificationLabel.setGeometry(500, 25, 600, 100)
-        self.notificationLabel.setFont(QFont('Times', 12))
-        red_font = QGraphicsColorizeEffect()
-        red_font.setColor(QColor(255, 15, 15))
-        self.notificationLabel.setGraphicsEffect(red_font)
-
-
-    def createBottomLeftBox(self):
-        self.RemoteFilesList = QListWidget(self)
-        self.RemoteFilesList.move(20, 160)
-        self.RemoteFilesList.resize(650, 570)
-        self.remoteSelectedFile = [] 
-
-        self.RemoteFilesLabel = QLabel(self)
-        self.RemoteFilesLabel.setText("Remote Files Section:\n{file} - {size}")
-        self.RemoteFilesLabel.move(20, 120)
-        self.RemoteFilesLabel.adjustSize()
-        self.RemoteFilesList.itemDoubleClicked.connect(self.remoteFileSelectionChanged)
-        self.RemoteFilesList.itemClicked.connect(self.remoteFileSelectionChangedSingleClick)
-
-    def createBottomRightBox(self):        
-        self.LocalFilesList = QListWidget(self)
-        self.LocalFilesList.move(800, 160)
-        self.LocalFilesList.resize(650, 570)
-        self.localSelectedFile = []
-
-        self.LocalFilesLabel = QLabel(self)
-        self.LocalFilesLabel.setText("Local Files Section:\n{file} - {size}") 
-        self.LocalFilesLabel.move(800, 120)
-        self.LocalFilesLabel.adjustSize()
-        self.LocalFilesList.itemDoubleClicked.connect(self.localFileSelectionChanged)
-        self.LocalFilesList.itemClicked.connect(self.localFileSelectionChangedSingleClick)
 
     def getLocalFileList(self, localPath=None, afterDelete=False):
         previous_dir = False 
@@ -311,72 +250,6 @@ class Program(QMainWindow):
                             QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(self.fileIcon)
                 self.remoteSelectedFile = ""
 
-    def localToRemoteTransfer(self, localFile):
-        if localFile == []:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "No file selected to file transfer. Make sure you double-click the file to transfer!")
-            errorMessage.exec_()
-            return 
-        with self.connection.cd(self.currentRemotePath):
-            try:
-                localFileName = localFile.text().split(" -")[0]
-                self.connection.put(localFileName) 
-                self.updateRemoteFiles()
-                self.showFileTransferSuccessMsg()
-            except IsADirectoryError:
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
-                errorMessage.exec_()
-            except PermissionError: 
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission denied for file transfer")
-                errorMessage.exec_()
-            except Exception:
-                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Ran into an error while file transfering")
-        
-    def checkForForwardSlash(self):
-        if self.currentLocalPath[-1] == "/":
-            size = len(self.currentLocalPath)
-            self.currentLocalPath = self.currentLocalPath[:size - 1]
-
-    def remoteToLocalTransfer(self, remoteFile):
-        if remoteFile == []:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "No file selected to file transfer. Make sure you double-click the file to transfer!")
-            errorMessage.exec_()
-            return 
-        try: 
-            self.checkForForwardSlash()
-            remoteFileName = remoteFile.text().split(" -")[0]
-            newLocalArr = remoteFileName.split("/")
-            arrLength = len(newLocalArr)
-            i = 0
-            while i < arrLength:
-                if newLocalArr[i] == "":
-                    del(newLocalArr[i])
-                    arrLength -= 1
-                    continue 
-                i += 1
-            if self.currentLocalPath[-1] != "\\":
-                self.currentLocalPath += "\\"
-            newLocalFileName = newLocalArr[-1]
-            with self.connection.cd(self.currentRemotePath):
-                self.connection.get(remoteFileName, self.currentLocalPath + newLocalFileName)
-                self.updateLocalFiles()
-                self.showFileTransferSuccessMsg()
-        except IsADirectoryError:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
-            errorMessage.exec_()
-        except PermissionError:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission Denied for file transfer")
-            errorMessage.exec_()
-        except FileNotFoundError:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "No such file")
-            errorMessage.exec_()
-        except OSError:
-            tracebackString = traceback.print_exc()
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
-            errorMessage.exec_()
-        except Exception:
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Ran into error while file transfering")     
-            errorMessage.exec_() 
-
     def showFileTransferSuccessMsg(self):
         transfer_success_msg = QMessageBox()
         transfer_success_msg.setWindowTitle("File Transferred")
@@ -416,77 +289,3 @@ class Program(QMainWindow):
                 print("No clicked")
             if confirmDelete == QMessageBox.Cancel:
                 print("Cancel")
-
-    def createDeleteButton(self):
-        self.deleteButton = QPushButton(self)
-        self.deleteButton.setIcon(QIcon(os.getcwd() + "/icons/delete.png"))
-        self.deleteButton.setCursor(Qt.ArrowCursor)
-        self.deleteButton.resize(35, 35)
-        self.deleteButton.move(20, 70)
-        self.deleteButton.clicked.connect(lambda:self.deleteFile("abc.txt"))
-        self.deleteButton.setEnabled(True)
-        self.deleteButton.show()
-
-
-    def createBottonCenterBox(self):
-        self.rightArrowButton = QToolButton(self)
-        self.rightArrowButton.setIcon(QIcon(os.getcwd() + "/icons/right.png" ))
-        self.rightArrowButton.setStyleSheet("border: 1px solid black; padding: 1px; background-color: #6BA4FC")
-        self.rightArrowButton.setCursor(Qt.ArrowCursor)
-        self.rightArrowButton.resize(45, 45)
-        self.rightArrowButton.move(710, 250)
-        self.rightArrowButton.clicked.connect(lambda:self.remoteToLocalTransfer(self.remoteSelectedFile))
-        self.rightArrowButton.setEnabled(False)
-
-        self.leftArrowButton = QToolButton(self)
-        self.leftArrowButton.setIcon(QIcon(os.getcwd() + "/icons/left.png"))
-        self.leftArrowButton.setStyleSheet("border: 1px solid black; padding: 1px; background-color: #6BA4FC")
-        self.leftArrowButton.setCursor(Qt.ArrowCursor)
-        self.leftArrowButton.resize(45, 45)
-        self.leftArrowButton.move(710, 315)
-        self.leftArrowButton.clicked.connect(lambda:self.localToRemoteTransfer(self.localSelectedFile))
-        self.leftArrowButton.setEnabled(False)
-
-    def createTopLeftGroupBox(self):
-        self.topLeftGroupBox = QGroupBox("Group 1")
-
-        radioButton1 = QRadioButton("Radio Button 1")
-        radioButton2 = QRadioButton("Radio Button 2")
-        radioButton3 = QRadioButton("Radio Button 3")
-        radioButton1.setChecked(True)
-
-        layout = QVBoxLayout()
-        layout.addWidget(radioButton1)
-        layout.addWidget(radioButton2)
-        layout.addWidget(radioButton3)
-        layout.addStretch(1)
-        self.topLeftGroupBox.setLayout(layout)
-
-    def createTopTextBoxes(self):
-        self.hostnameTextBox = QLineEdit(self)
-        self.hostnameTextBox.move(200, 70)
-        self.hostnameTextBox.resize(280, 40)
-        self.hostnameTextBox.setPlaceholderText("Hostname: ")
-
-        self.usernameTextBox = QLineEdit(self)
-        self.usernameTextBox.move(550, 70)
-        self.usernameTextBox.resize(280, 40)
-        self.usernameTextBox.setPlaceholderText("Username: ")
-
-        self.passwordTextBox = QLineEdit(self)
-        self.passwordTextBox.setEchoMode(QLineEdit.Password)
-        self.passwordTextBox.move(875, 70)
-        self.passwordTextBox.resize(280, 40)
-        self.passwordTextBox.setPlaceholderText("Password: ")
-
-        self.quickConnectButton = QPushButton(self)
-        self.quickConnectButton.setDefault(True)
-        self.quickConnectButton.move(1300, 70)
-        self.quickConnectButton.resize(150, 40)
-        self.quickConnectButton.setText("Quick Connect")
-        self.quickConnectButton.setStyleSheet('QPushButton {background-color: #fff; color: black; border: 1px solid blue;}')
-        self.hostname = self.hostnameTextBox.text()
-        self.username = self.usernameTextBox.text()
-        self.password = self.passwordTextBox.text()
-        self.quickConnectButton.clicked.connect(lambda:self.startFTP(self.hostnameTextBox.text(), self.usernameTextBox.text(), self.passwordTextBox.text()))
-        self.show()
