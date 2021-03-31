@@ -39,7 +39,9 @@ class Program(QMainWindow):
         self.currentFile = "/"  
         self.currentFileList = ""
         self.localSelectedFile = []
-
+        self.hostName = ''
+        self.username = ''
+        self.password = ''
 
         createNotificationBox(self)
         createBottomLeftBox(self)
@@ -102,10 +104,12 @@ class Program(QMainWindow):
             self.currentRemotePath = newRemotePath + self.currentRemotePath
             remoteFiles = self.connection.listdir_attr(self.currentRemotePath)
             
-        else:  
+        else: 
+            self.RemoteFilesList.clear() 
             remoteFiles = self.connection.listdir_attr("./")
             remoteDir = self.connection.normalize(".")
-            self.currentRemotePath = self.connection.pwd + self.currentRemotePath
+            if self.currentRemotePath == "/":
+                self.currentRemotePath = self.connection.pwd + self.currentRemotePath
         self.createRemoteFilesList(remoteFiles)
         return True 
 

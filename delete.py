@@ -1,6 +1,15 @@
 from PyQt5.QtWidgets import (QMessageBox)
-import os 
+import os, paramiko
 from local_transfer import getLocalFileList
+
+
+def remoteDelete(self, deleteFilePath):
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(self.hostname, username=self.username, password=self.password)
+    stdin, stdout, stderr = client.exec_command('rm ' + deleteFilePath)
+    client.close()
+    
 
 def showDeleteFileSuccessMsg(self):
     deleteFile_success_msg = QMessageBox()
@@ -12,24 +21,23 @@ def showDeleteFileSuccessMsg(self):
 def deleteFile(self):
     if self.currentFile != "/":
         deleteFile = self.currentFile
-        if self.currentFileList == "Remote":
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Cannot delete files and folder in remote server!")
-            errorMessage.exec_()
-            return 
-        if deleteFile.background().color().getRgb() == (100, 100, 150, 255):
-            errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Cannot delete folders! Only files can be deleted...")
-            errorMessage.exec_()
-            return 
         deleteFileName = str(self.currentFile.text())
         deleteFilePath = deleteFileName.split(" -")[0]
-        
         confirmDelete = QMessageBox.question(self, "Confirm Action", "Are you sure you want to delete this file: " + deleteFilePath, QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
-
         if confirmDelete == QMessageBox.Yes:
-            os.remove(deleteFilePath)
+            if deleteFile.background().color().getRgb() == (100, 100, 150, 255):
+                errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Cannot delete folders! Only files can be deleted...")
+                errorMessage.exec_()
+                return 
+            if self.currentFileList == "Remote":
+                remoteDelete(self, deleteFilePath)
+                self.getRemoteFileList()
+            if self.currentFileList == "Local":
+                os.remove(deleteFilePath)
+                self.LocalFilesList.clear()
+                getLocalFileList(self, None, True)
             showDeleteFileSuccessMsg(self)
-            self.LocalFilesList.clear()
-            getLocalFileList(self, None, True)
+            return 
         if confirmDelete == QMessageBox.No:
             print("No clicked")
         if confirmDelete == QMessageBox.Cancel:

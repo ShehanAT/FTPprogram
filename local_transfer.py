@@ -14,6 +14,9 @@ def startFTP(self, hostname, username, password):
     cnopts.hostkeys = None
     try: 
         self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
+        self.hostname = hostname
+        self.username = username 
+        self.password = password 
         getLocalFileList(self)
         self.getRemoteFileList()
         self.notificationLabel.setText("Double-click on a file and click the arrow buttons to file transfer")
