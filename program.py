@@ -1,25 +1,17 @@
 from PyQt5.QtCore import * 
 from PyQt5.QtGui import *
-import pysftp
-import sys 
-import traceback
-import os 
-import pathlib 
-import re 
+import os, pathlib, sys, traceback, pysftp
 from pysftp import paramiko
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit, 
-    QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
-    QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
-    QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit, 
-    QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QToolButton, QMessageBox, QFrame, QFileDialog, QMainWindow, QGraphicsColorizeEffect, QMessageBox)
+from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
+    QGridLayout, QLabel, QStyleFactory, QListWidget, 
+    QListWidgetItem, QMainWindow)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QBrush
-from PyQt5 import QtCore 
-from transfer import startFTP, remoteToLocalTransfer, localToRemoteTransfer, showFileTransferSuccessMsg
+from local_transfer import startFTP, localToRemoteTransfer, getLocalFileList
+from remote_transfer import remoteToLocalTransfer
 from delete import deleteFile, showDeleteFileSuccessMsg
 from draw import (createTopTextBoxes, createBottomCenterBox, createDeleteButton, 
                     createNotificationBox, createBottomLeftBox, createBottomRightBox)
-
 
 class Program(QMainWindow):
     def __init__(self, parent=None):
@@ -40,6 +32,15 @@ class Program(QMainWindow):
 
         disableWidgetsCheckBox = QCheckBox("&Disable widgets")
         self.currentDir = os.path.dirname(os.path.realpath(__file__))
+        self.LocalFilesList = QListWidget(self)
+        self.RemoteFilesList = QListWidget(self)
+        self.currentRemotePath = "/"  
+        self.currentLocalPath = "\\"  
+        self.currentFile = "/"  
+        self.currentFileList = ""
+        self.localSelectedFile = []
+
+
         createNotificationBox(self)
         createBottomLeftBox(self)
         createBottomRightBox(self)
@@ -47,10 +48,6 @@ class Program(QMainWindow):
         createTopTextBoxes(self)
         createDeleteButton(self)
 
-        self.currentRemotePath = "/"   
-        self.currentLocalPath = "\\"  
-        self.currentFile = "/"  
-        self.currentFileList = ""
         mainLayout = QGridLayout()
         self.setLayout(mainLayout)
         
@@ -63,7 +60,7 @@ class Program(QMainWindow):
         self.directoryIcon = QIcon(self.currentDir + "/icons/directory.png")
         self.fileIcon = QIcon(self.currentDir + "/icons/file.png")
     
-        self.changeStyle("Windows")
+        # Misc
 
     def clearAllData(self):
         self.LocalFilesList.clear()
@@ -73,83 +70,12 @@ class Program(QMainWindow):
         self.currentFile = ""
         self.currentFileList = ""
 
-    def updateRemoteFiles(self):
-        self.RemoteFilesList.clear()
-        remoteFiles = self.connection.listdir_attr("./")
-        self.createRemoteFilesList(remoteFiles)
-
-    def updateLocalFiles(self):
-        self.LocalFilesList.clear()
-        localFiles = os.scandir(self.currentLocalPath)
-        self.createLocalFilesList(localFiles)
-
-    def changeStyle(self, styleName):
-        QApplication.setStyle(QStyleFactory.create(styleName))
-        self.changePalette()
-    
     def changePalette(self):
         if(self.useStylePaletteCheckBox.isChecked()):
             QApplication.setPalette(QApplication.style().standardPalette())
         else:
             QApplication.setPalette(self.originalPalette)
 
-    def advanceProgressBar(self):
-        currVal = self.progressBar.value()
-        maxVal = self.progressBar.maximum()
-        self.progressBar.setValue(currVal + (maxVal - currVal) / 100)
-
-    def getLocalFileList(self, localPath=None, afterDelete=False):
-        previous_dir = False 
-        base_dir = False 
-        delete_dir = False 
-        if localPath == "..":
-            if self.currentLocalPath.endswith("\\") and self.currentLocalPath != "C:\\":
-                # removing the 'def\\' in path: '\\abc\def\\' 
-                self.currentLocalPath = self.currentLocalPath[:-1] 
-            newLocalArr = list(os.path.split(self.currentLocalPath))
-            arrLength = len(newLocalArr)
-            i = 0
-            while i < arrLength:
-                if newLocalArr[i] == "":
-                    del(newLocalArr[i])
-                    arrLength -= 1
-                    continue
-                i += 1 
-            if len(newLocalArr) == 0:
-                # self.currentLocalPath is "\"
-                return False 
-            self.LocalFilesList.clear()
-            newLocalPath = newLocalArr[0]
-            self.currentLocalPath = str(newLocalPath)
-            localFiles = os.scandir(newLocalPath)
-            previous_dir = True
-            if self.currentLocalPath == "C:\\":
-                base_dir = True  
-        elif afterDelete:
-            currentLocalPathLen = len(self.currentLocalPath)
-            localFiles = os.scandir(self.currentLocalPath)
-            delete_dir = True 
-        else:  
-            localFiles = os.scandir("./")
-            self.currentLocalPath = os.getcwd() + self.currentLocalPath
-        # create back button 
-        QListWidgetItem("..", self.LocalFilesList).setIcon(self.directoryIcon)
-        for file in localFiles:
-            fileType = list(file.stat())[0] // 10000
-            if previous_dir and base_dir == False and delete_dir == False:
-                if fileType == 1: # for folders
-                    QListWidgetItem(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.directoryIcon)
-                    self.LocalFilesList.findItems(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
-                elif fileType == 3: # for files
-                    QListWidgetItem(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.fileIcon)
-            else: 
-                if fileType == 1: # for folders
-                    QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.directoryIcon)
-                    self.LocalFilesList.findItems(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
-                elif fileType == 3: # for files
-                    QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.fileIcon)   
-        return True 
-  
     def getRemoteFileList(self, *args):
         if args:
             newRemoteArr = self.currentRemotePath.split("/")
@@ -206,12 +132,12 @@ class Program(QMainWindow):
     def localFileSelectionChangedSingleClick(self):
         self.currentFile = self.LocalFilesList.selectedItems()[0]
         self.currentFileList = "Local"
-
+   
     def localFileSelectionChanged(self):
         self.localSelectedFile = self.LocalFilesList.selectedItems()[0]
         item = self.localSelectedFile
         if item.text() == "..":
-            self.getLocalFileList("..")
+            getLocalFileList(self, "..")
             self.localSelectedFile = ""
         else:
             if item.background().color().getRgb() == (100, 100, 150, 255):
@@ -224,7 +150,7 @@ class Program(QMainWindow):
                 localFiles = os.scandir(self.currentLocalPath)
                 self.createLocalFilesList(localFiles)
                 self.localSelectedFile = ""   
-         
+   
     def remoteFileSelectionChangedSingleClick(self):
         self.currentFile = self.RemoteFilesList.selectedItems()[0]
         self.currentFileList = "Remote"
@@ -252,18 +178,3 @@ class Program(QMainWindow):
                         if fileType == 3:
                             QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(self.fileIcon)
                 self.remoteSelectedFile = ""
-    '''
-    def showFileTransferSuccessMsg(self):
-        transfer_success_msg = QMessageBox()
-        transfer_success_msg.setWindowTitle("File Transferred")
-        transfer_success_msg.setText("File transferred successfully!")
-        transfer_success_msg.setIcon(QMessageBox.Information)
-        transfer_success_msg.exec_()
-
-    def showDeleteFileSuccessMsg(self):
-        deleteFile_success_msg = QMessageBox()
-        deleteFile_success_msg.setWindowTitle("File deleted")
-        deleteFile_success_msg.setText("File deleted successfully!")
-        deleteFile_success_msg.setIcon(QMessageBox.Information)
-        deleteFile_success_msg.exec_()
-    '''

@@ -67,10 +67,10 @@ def createDeleteButton(self):
     self.deleteButton.show()
 
 def createBottomRightBox(self):        
-    self.LocalFilesList = QListWidget(self)
+    # self.LocalFilesList = QListWidget(self)
     self.LocalFilesList.move(800, 160)
     self.LocalFilesList.resize(650, 570)
-    self.localSelectedFile = []
+    # self.localSelectedFile = []
 
     self.LocalFilesLabel = QLabel(self)
     self.LocalFilesLabel.setText("Local Files Section:\n{file} - {size}") 
@@ -102,6 +102,3 @@ def createNotificationBox(self):
     red_font = QGraphicsColorizeEffect()
     red_font.setColor(QColor(255, 15, 15))
     self.notificationLabel.setGraphicsEffect(red_font)
-
-
-

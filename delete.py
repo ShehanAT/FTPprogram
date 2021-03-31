@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QMessageBox)
 import os 
-
+from local_transfer import getLocalFileList
 
 def showDeleteFileSuccessMsg(self):
     deleteFile_success_msg = QMessageBox()
@@ -29,7 +29,7 @@ def deleteFile(self):
             os.remove(deleteFilePath)
             showDeleteFileSuccessMsg(self)
             self.LocalFilesList.clear()
-            self.getLocalFileList(None, True)
+            getLocalFileList(self, None, True)
         if confirmDelete == QMessageBox.No:
             print("No clicked")
         if confirmDelete == QMessageBox.Cancel:
