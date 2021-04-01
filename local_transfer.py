@@ -1,13 +1,13 @@
 from PyQt5.QtWidgets import (QMessageBox)
 from pysftp import paramiko
-import pysftp, os
+import pysftp, os, logging
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import (QListWidget, 
     QListWidgetItem)
 from PyQt5.QtCore import Qt
 
 
-
+logger = logging.getLogger('FTP-Program')
 def startFTP(self, hostname, username, password):
     self.clearAllData()
     cnopts = pysftp.CnOpts()
@@ -22,11 +22,12 @@ def startFTP(self, hostname, username, password):
         self.notificationLabel.setText("Double-click on a file and click the arrow buttons to file transfer")
         self.rightArrowButton.setEnabled(True)
         self.leftArrowButton.setEnabled(True)
-    except paramiko.ssh_exception.SSHException:
+    except paramiko.ssh_exception.SSHException as e:
         if hostname == "":                    
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Hostname field cannot be empty!")
             errorMessage.exec_()
         else:
+            logger.error(e)
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "SSH Failed! Connection attempt to host: " + hostname +  " failed!")
             errorMessage.exec_()
     except paramiko.ssh_exception.AuthenticationException:

@@ -67,10 +67,8 @@ def createDeleteButton(self):
     self.deleteButton.show()
 
 def createBottomRightBox(self):        
-    # self.LocalFilesList = QListWidget(self)
     self.LocalFilesList.move(800, 160)
     self.LocalFilesList.resize(650, 570)
-    # self.localSelectedFile = []
 
     self.LocalFilesLabel = QLabel(self)
     self.LocalFilesLabel.setText("Local Files Section:\n{file} - {size}") 
@@ -80,7 +78,6 @@ def createBottomRightBox(self):
     self.LocalFilesList.itemClicked.connect(self.localFileSelectionChangedSingleClick)
 
 def createBottomLeftBox(self):
-    self.RemoteFilesList = QListWidget(self)
     self.RemoteFilesList.move(20, 160)
     self.RemoteFilesList.resize(650, 570)
     self.remoteSelectedFile = [] 

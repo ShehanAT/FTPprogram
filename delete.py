@@ -9,7 +9,6 @@ def remoteDelete(self, deleteFilePath):
     client.connect(self.hostname, username=self.username, password=self.password)
     stdin, stdout, stderr = client.exec_command('rm ' + deleteFilePath)
     client.close()
-    
 
 def showDeleteFileSuccessMsg(self):
     deleteFile_success_msg = QMessageBox()
