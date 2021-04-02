@@ -8,12 +8,15 @@ from PyQt5.QtCore import Qt
 
 
 logger = logging.getLogger('FTP-Program')
-def startFTP(self, hostname, username, password):
+def startFTP(self, hostname, username, password, public_key=False):
     self.clearAllData()
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     try: 
-        self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
+        if public_key:
+            self.connection = pysftp.Connection(host=hostname, username=username, private_key="C:\Users\sheha\OneDrive\Documents\GitHub\FTPprogram_private_key.ppk", cnopts=cnopts)
+        else:
+            self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
         self.hostname = hostname
         self.username = username 
         self.password = password 
