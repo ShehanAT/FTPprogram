@@ -13,10 +13,7 @@ def startFTP(self, hostname, username, password, public_key=False):
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     try: 
-        if public_key:
-            self.connection = pysftp.Connection(host=hostname, username=username, private_key="C:\Users\sheha\OneDrive\Documents\GitHub\FTPprogram_private_key.ppk", cnopts=cnopts)
-        else:
-            self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
+        self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
         self.hostname = hostname
         self.username = username 
         self.password = password 

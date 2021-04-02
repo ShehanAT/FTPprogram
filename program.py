@@ -59,10 +59,15 @@ class Program(QMainWindow):
         self.leftArrowButton.clicked.connect(lambda:localToRemoteTransfer(self, self.localSelectedFile))
         self.deleteButton.clicked.connect(lambda:deleteFile(self))
 
+        # Misc
         self.directoryIcon = QIcon(self.currentDir + "/icons/directory.png")
         self.fileIcon = QIcon(self.currentDir + "/icons/file.png")
     
-        # Misc
+        
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Return:
+            startFTP(self, self.hostnameTextBox.text(), self.usernameTextBox.text(), self.passwordTextBox.text())
 
     def clearAllData(self):
         self.LocalFilesList.clear()

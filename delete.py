@@ -1,14 +1,31 @@
 from PyQt5.QtWidgets import (QMessageBox)
 import os, paramiko
 from local_transfer import getLocalFileList
+import logging 
 
-
+logger = logging.getLogger('Delete file')
 def remoteDelete(self, deleteFilePath):
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(self.hostname, username=self.username, password=self.password)
-    stdin, stdout, stderr = client.exec_command('rm ' + deleteFilePath)
-    client.close()
+
+    errorMessage = QMessageBox()
+    errorMessage.setIcon(QMessageBox.Critical)
+    errorMessage.setWindowTitle("Deletion Error")
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(self.hostname, username=self.username, password=self.password)
+        stdin, stdout, stderr = client.exec_command('rm ' + deleteFilePath)
+        client.close()
+        return True 
+    except paramiko.ssh_exception.SSHException as e:
+        errorMessage.setInformativeText(str(e))
+        logger.error(e)
+        errorMessage.exec_()
+        return False 
+    except UnicodeDecodeError as e: 
+        errorMessage.setInformativeText(str(e))
+        logger.error(e)
+        errorMessage.exec_()
+        return False 
 
 def showDeleteFileSuccessMsg(self):
     deleteFile_success_msg = QMessageBox()
@@ -20,8 +37,13 @@ def showDeleteFileSuccessMsg(self):
 def deleteFile(self):
     if self.currentFile != "/":
         deleteFile = self.currentFile
-        deleteFileName = str(self.currentFile.text())
-        deleteFilePath = deleteFileName.split(" -")[0]
+        try:
+            deleteFileName = str(self.currentFile.text())
+            deleteFilePath = deleteFileName.split(" -")[0]
+        except AttributeError as e:
+            errorMessage = QMessageBox(QMessageBox.Critical, "File not selected", "No file selected to delete! Make sure to select a file first")
+            errorMessage.exec_()
+            return 
         confirmDelete = QMessageBox.question(self, "Confirm Action", "Are you sure you want to delete this file: " + deleteFilePath, QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
         if confirmDelete == QMessageBox.Yes:
             if deleteFile.background().color().getRgb() == (100, 100, 150, 255):
@@ -29,13 +51,14 @@ def deleteFile(self):
                 errorMessage.exec_()
                 return 
             if self.currentFileList == "Remote":
-                remoteDelete(self, deleteFilePath)
-                self.getRemoteFileList()
+                if remoteDelete(self, deleteFilePath) == True:
+                    self.getRemoteFileList()
+                    showDeleteFileSuccessMsg(self)
             if self.currentFileList == "Local":
                 os.remove(deleteFilePath)
                 self.LocalFilesList.clear()
                 getLocalFileList(self, None, True)
-            showDeleteFileSuccessMsg(self)
+                showDeleteFileSuccessMsg(self)
             return 
         if confirmDelete == QMessageBox.No:
             print("No clicked")
