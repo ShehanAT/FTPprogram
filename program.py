@@ -118,10 +118,12 @@ class Program(QMainWindow):
             remoteFiles = self.connection.listdir_attr(self.currentRemotePath)
         else: 
             self.RemoteFilesList.clear() 
-            remoteFiles = self.connection.listdir_attr("./")
-            remoteDir = self.connection.normalize(".")
+            # remoteDir = self.connection.normalize(".")
             if self.currentRemotePath == "/":
+                remoteFiles = self.connection.listdir_attr("./")
                 self.currentRemotePath = self.connection.pwd 
+            else:
+                remoteFiles = self.connection.listdir_attr(self.currentRemotePath)
         self.currentRemotePathDisplay.setText(self.currentRemotePath)
         self.createRemoteFilesList(remoteFiles)
         return True 
