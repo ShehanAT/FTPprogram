@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QMessageBox)
+from PyQt5.QtWidgets import (QMessageBox, QApplication)
 from pysftp import paramiko
 import pysftp, os, logging
 from datetime import datetime
@@ -44,6 +44,8 @@ def startFTP(self, hostname, username, password, public_key=False):
 
 
 def localToRemoteTransfer(self, localFile):
+    self.notificationLabel.setText("Loading...")
+    QApplication.setOverrideCursor(Qt.WaitCursor)
     if localFile == []:
         errorMessage = QMessageBox(QMessageBox.Critical, "Error", "No file selected to file transfer. Make sure you double-click the file to transfer!")
         errorMessage.exec_()
@@ -53,15 +55,20 @@ def localToRemoteTransfer(self, localFile):
             localFilePath = self.currentLocalPath + "\\" + localFile.text(0)
             self.connection.put(localFilePath) 
             updateRemoteFiles(self)
+            QApplication.restoreOverrideCursor()
             showFileTransferSuccessMsg(self)
         except IsADirectoryError:
+            QApplication.restoreOverrideCursor()
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "The selected file is a directory, please select a file instead.")
             errorMessage.exec_()
         except PermissionError: 
+            QApplication.restoreOverrideCursor()
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Permission denied for file transfer")
             errorMessage.exec_()
         except Exception:
+            QApplication.restoreOverrideCursor()
             errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Ran into an error while file transfering")
+    self.notificationLabel.setText("")
 
 def updateRemoteFiles(self):
     self.RemoteFilesList.clear()
@@ -117,8 +124,9 @@ def getLocalFileList(self, localPath=None, afterDelete=False):
             if fileType == 1: # for folders
                 item_file = QTreeWidgetItem()
                 item_file.setIcon(0, self.directoryIcon)
-                for i in range(0, self.LocalFilesList.columnCount()):
-                    item_file.setBackground(i, QColor(100,100,150))
+                item_file.setStatusTip(0, "d")
+                # for i in range(0, self.LocalFilesList.columnCount()):
+                #     item_file.setBackground(i, QColor(100,100,150))
                 for n, i in enumerate((file_name, date_modified, file_size)):
                     item_file.setText(n, i)
                 self.LocalFilesList.addTopLevelItem(item_file)
@@ -134,8 +142,9 @@ def getLocalFileList(self, localPath=None, afterDelete=False):
             if fileType == 1: # for folders
                 item_file = QTreeWidgetItem()
                 item_file.setIcon(0, self.directoryIcon)
-                for i in range(0, self.LocalFilesList.columnCount()):
-                    item_file.setBackground(i, QColor(100,100,150))
+                item_file.setStatusTip(0, "d")
+                # for i in range(0, self.LocalFilesList.columnCount()):
+                #     item_file.setBackground(i, QColor(100,100,150))
                 for n, i in enumerate((file_name, date_modified, file_size)):
                     item_file.setText(n, i)
                 self.LocalFilesList.addTopLevelItem(item_file)
@@ -146,6 +155,7 @@ def getLocalFileList(self, localPath=None, afterDelete=False):
                     item_file.setText(n, i)
                 self.LocalFilesList.addTopLevelItem(item_file)
     self.currentLocalPathDisplay.setText(self.currentLocalPath)
+    self.LocalFilesList.resizeColumnToContents(0)
     return True 
 
 def showFileTransferSuccessMsg(self):

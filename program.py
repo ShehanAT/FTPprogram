@@ -161,8 +161,7 @@ class Program(QMainWindow):
                 if fileType == 1:
                     item_file = QTreeWidgetItem()
                     item_file.setIcon(0, self.directoryIcon)
-                    for i in range(0, self.LocalFilesList.columnCount()):
-                        item_file.setBackground(i, QColor(100,100,150))
+                    item_file.setStatusTip(0, "d")
                     for n, i in enumerate((file_name, date_modified, file_size)):
                         item_file.setText(n, i)
                     self.LocalFilesList.addTopLevelItem(item_file)
@@ -192,7 +191,7 @@ class Program(QMainWindow):
             getLocalFileList(self, "..")
             self.localSelectedFile = ""
         else:
-            if item.background(0).color().getRgb() == (100, 100, 150, 255):
+            if item.statusTip(0) == 'd':
                 # selection is dir, switch dirs 
                 if self.currentLocalPath == "/":
                     self.currentLocalPath = item.text(0).split(" -")[0] + self.currentLocalPath
@@ -231,15 +230,11 @@ class Program(QMainWindow):
             self.getRemoteFileList("..")
             self.remoteSelectedFile = ""
         else:
-            if item.background(0).color().getRgb() == (100, 100, 150, 255):
+            if item.statusTip(0) == "d":
                 # selection is dir 
                 if self.currentRemotePath == "/":
                     # self.currentRemotePath = item.text(0).split(" -")[0] + self.currentRemotePath
                     self.currentRemotePath += item.text(0)
-                # else:
-                    # if self.currentRemotePath.endswith("/") and self.currentRemotePath != "/":
-                    # # removing the 'def\\' in path: '\\abc\def\\' 
-                    #     self.currentRemotePath = self.currentRemotePath[:-1] 
                 else:
                     if self.currentRemotePath.endswith("/"):
                         # removing the 'def/' in path: '/abc/def/'
@@ -279,8 +274,9 @@ class Program(QMainWindow):
             if fileType == 1:
                 item_file = QTreeWidgetItem()
                 item_file.setIcon(0, self.directoryIcon)
-                for i in range(0, self.RemoteFilesList.columnCount()):
-                    item_file.setBackground(i, QColor(100,100,150))
+                item_file.setStatusTip(0, 'd')
+                # for i in range(0, self.RemoteFilesList.columnCount()):
+                #     item_file.setBackground(i, QColor(100,100,150))
                 for n, i in enumerate((file_name, date_modified, file_size)):
                     item_file.setText(n, i)
                 self.RemoteFilesList.addTopLevelItem(item_file)
@@ -290,6 +286,5 @@ class Program(QMainWindow):
                 for n, i in enumerate((file_name, date_modified, file_size)):
                     item_file.setText(n, i)
                 self.RemoteFilesList.addTopLevelItem(item_file)
-                # QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(self.fileIcon)
         self.remoteSelectedFile = ""
         self.currentRemotePathDisplay.setText(self.currentRemotePath)
