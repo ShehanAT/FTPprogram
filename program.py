@@ -1,10 +1,11 @@
 from PyQt5.QtCore import * 
 from PyQt5.QtGui import *
-import os, pathlib, sys, traceback, pysftp
+import os, pathlib, sys, traceback, pysftp, time
+from datetime import datetime
 from pysftp import paramiko
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
     QGridLayout, QLabel, QStyleFactory, QListWidget, 
-    QListWidgetItem, QMainWindow)
+    QListWidgetItem, QMainWindow, QTreeWidget, QTreeWidgetItem, QMessageBox)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QBrush
 from local_transfer import startFTP, localToRemoteTransfer, getLocalFileList
@@ -32,8 +33,12 @@ class Program(QMainWindow):
 
         disableWidgetsCheckBox = QCheckBox("&Disable widgets")
         self.currentDir = os.path.dirname(os.path.realpath(__file__))
-        self.LocalFilesList = QListWidget(self)
-        self.RemoteFilesList = QListWidget(self)
+        self.LocalFilesList = QTreeWidget(self)
+        self.RemoteFilesList = QTreeWidget(self)
+        self.currentRemotePathLabel = QLabel(self)
+        self.currentLocalPathLabel = QLabel(self)
+        self.currentRemotePathDisplay = QLabel(self)
+        self.currentLocalPathDisplay = QLabel(self)
         self.currentRemotePath = "/"  
         self.currentLocalPath = "\\"  
         self.currentFile = "/"  
@@ -96,6 +101,7 @@ class Program(QMainWindow):
                 i += 1 
             if len(newRemoteArr) == 0:
                 # self.currentRemotePath is "/"
+                self.currentRemotePathDisplay.setText(self.currentRemotePath)
                 return False 
             self.RemoteFilesList.clear() # clear current list since back navigation is valid
             newRemoteArr.pop()
@@ -104,39 +110,77 @@ class Program(QMainWindow):
                 for i in newRemoteArr:
                     newRemotePath = newRemotePath + '/'
                     newRemotePath = newRemotePath + i 
-            remotePath = newRemotePath[:-1]
-            self.currentRemotePath = "/"
-            self.currentRemotePath = newRemotePath + self.currentRemotePath
+                # self.currentRemotePath = newRemotePath + "/"
+                self.currentRemotePath = newRemotePath 
+            else:
+                newRemotePath = "/"
+                self.currentRemotePath = newRemotePath 
             remoteFiles = self.connection.listdir_attr(self.currentRemotePath)
-            
         else: 
             self.RemoteFilesList.clear() 
-            remoteFiles = self.connection.listdir_attr("./")
-            remoteDir = self.connection.normalize(".")
+            # remoteDir = self.connection.normalize(".")
             if self.currentRemotePath == "/":
-                self.currentRemotePath = self.connection.pwd + self.currentRemotePath
+                remoteFiles = self.connection.listdir_attr("./")
+                self.currentRemotePath = self.connection.pwd 
+            else:
+                remoteFiles = self.connection.listdir_attr(self.currentRemotePath)
+        self.currentRemotePathDisplay.setText(self.currentRemotePath)
         self.createRemoteFilesList(remoteFiles)
         return True 
 
     def createRemoteFilesList(self, remoteFiles):
-        QListWidgetItem("..", self.RemoteFilesList).setIcon(self.directoryIcon)
+        remote_list = []
+        self.RemoteFilesList.addTopLevelItem(QTreeWidgetItem(["..", "  ", "  "]))
         for file in remoteFiles:
             fileType = file.st_mode // 10000
-            if fileType == 1:
-                QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(self.directoryIcon)
-                self.RemoteFilesList.findItems(self.currentRemotePath + file.filename + " - " + str(file.st_size), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
-            elif fileType == 3:
-                QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(self.fileIcon)
+            file_name = file.filename 
+            date_modified = datetime.fromtimestamp(file.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+            file_size = str(file.st_size) 
+            if fileType == 1: # for dir 
+                item_file = QTreeWidgetItem()
+                item_file.setIcon(0, self.directoryIcon)
+                for i in range(0, self.RemoteFilesList.columnCount()):
+                    item_file.setBackground(i, QColor(100,100,150))
+                for n, i in enumerate((file_name, date_modified, file_size)):
+                    item_file.setText(n, i)
+                self.RemoteFilesList.addTopLevelItem(item_file)
+            elif fileType == 3: # for files
+                item_file = QTreeWidgetItem()
+                item_file.setIcon(0, self.fileIcon)
+                for n, i in enumerate((file_name, date_modified, file_size)):
+                    item_file.setText(n, i)
+                self.RemoteFilesList.addTopLevelItem(item_file)
 
     def createLocalFilesList(self, localFiles):
-        QListWidgetItem("..", self.LocalFilesList).setIcon(self.directoryIcon)
-        for file in localFiles:
-            fileType = list(file.stat())[0] // 10000
-            if fileType == 1:
-                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.directoryIcon)
-                self.LocalFilesList.findItems(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
-            if fileType == 3:
-                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.fileIcon)
+        self.LocalFilesList.addTopLevelItem(QTreeWidgetItem(["..", " ", "  "]))
+        try: 
+            for file in localFiles:
+                fileType = list(file.stat())[0] // 10000
+                stat_file = os.stat(file)
+                date_modified = datetime.fromtimestamp(os.path.getmtime(file.path)).strftime("%Y-%m-%d %H:%M:%S")
+                file_name = file.name
+                file_size = str(stat_file.st_size)
+                if fileType == 1:
+                    item_file = QTreeWidgetItem()
+                    item_file.setIcon(0, self.directoryIcon)
+                    item_file.setStatusTip(0, "d")
+                    for n, i in enumerate((file_name, date_modified, file_size)):
+                        item_file.setText(n, i)
+                    self.LocalFilesList.addTopLevelItem(item_file)
+                elif fileType == 3:
+                    item_file = QTreeWidgetItem()
+                    item_file.setIcon(0, self.fileIcon)
+                    for n, i in enumerate((file_name, date_modified, file_size)):
+                        item_file.setText(n, i)
+                    self.LocalFilesList.addTopLevelItem(item_file)
+            self.currentLocalPathDisplay.setText(self.currentLocalPath)
+        except FileNotFoundError as e:
+            self.currentLocalPathDisplay.setText(self.currentLocalPath)
+            error_message = QMessageBox()
+            error_message.setWindowTitle("File not found error")
+            error_message.setText(str(e))
+            error_message.setIcon(QMessageBox.Critical)
+            error_message.exec_()
 
     def localFileSelectionChangedSingleClick(self):
         self.currentFile = self.LocalFilesList.selectedItems()[0]
@@ -145,18 +189,35 @@ class Program(QMainWindow):
     def localFileSelectionChanged(self):
         self.localSelectedFile = self.LocalFilesList.selectedItems()[0]
         item = self.localSelectedFile
-        if item.text() == "..":
+        if item.text(0) == "..":
             getLocalFileList(self, "..")
             self.localSelectedFile = ""
         else:
-            if item.background().color().getRgb() == (100, 100, 150, 255):
+            if item.statusTip(0) == 'd':
                 # selection is dir, switch dirs 
                 if self.currentLocalPath == "/":
-                    self.currentLocalPath = item.text().split(" -")[0] + self.currentLocalPath
+                    self.currentLocalPath = item.text(0).split(" -")[0] + self.currentLocalPath
                 else:
-                    self.currentLocalPath = item.text().split(" -")[0] + "\\"
+                    if self.currentLocalPath.endswith("\\"):
+                    # removing the 'def\\' in path: '\\abc\def\\' 
+                        if self.currentLocalPath == "C:\\\\":
+                            self.currentLocalPath = "C:"
+                        else:
+                            self.currentLocalPath = self.currentLocalPath[:-1] 
+                    self.currentLocalPath += "\\" + item.text(0)
+                try:
+                    localFiles = os.scandir(self.currentLocalPath)
+                except PermissionError as e:
+                    error_message = QMessageBox()
+                    error_message.setWindowTitle("Permission Error")
+                    error_message.setText(str(e))
+                    error_message.setIcon(QMessageBox.Critical)
+                    error_message.exec_()
+
+                    localArr = list(os.path.split(self.currentLocalPath))
+                    self.currentLocalPath = localArr[0]
+                    return 
                 self.LocalFilesList.clear()
-                localFiles = os.scandir(self.currentLocalPath)
                 self.createLocalFilesList(localFiles)
                 self.localSelectedFile = ""   
    
@@ -167,23 +228,65 @@ class Program(QMainWindow):
     def remoteFileSelectionChanged(self):
         self.remoteSelectedFile = self.RemoteFilesList.selectedItems()[0]
         item = self.remoteSelectedFile
-        if item.text() == "..":
+        if item.text(0) == "..":
             self.getRemoteFileList("..")
             self.remoteSelectedFile = ""
         else:
-            if item.background().color().getRgb() == (100, 100, 150, 255):
+            if item.statusTip(0) == "d":
+                # selection is dir 
                 if self.currentRemotePath == "/":
-                    self.currentRemotePath = item.text().split(" -")[0] + self.currentRemotePath
+                    # self.currentRemotePath = item.text(0).split(" -")[0] + self.currentRemotePath
+                    self.currentRemotePath += item.text(0)
                 else:
-                    self.currentRemotePath = item.text().split(" -")[0] + "/"
-                with self.connection.cd(self.currentRemotePath):
-                    self.RemoteFilesList.clear()
-                    QListWidgetItem("..", self.RemoteFilesList).setIcon(self.directoryIcon)
-                    for file in self.connection.listdir_attr():
-                        fileType = file.st_mode // 10000
-                        if fileType == 1:
-                            QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(self.directoryIcon)
-                            self.RemoteFilesList.findItems(self.currentRemotePath + file.filename + " - " + str(file.st_size), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
-                        if fileType == 3:
-                            QListWidgetItem(self.currentRemotePath + file.filename + " - " + str(file.st_size) , self.RemoteFilesList).setIcon(self.fileIcon)
-                self.remoteSelectedFile = ""
+                    if self.currentRemotePath.endswith("/"):
+                        # removing the 'def/' in path: '/abc/def/'
+                        self.currentRemotePath = self.currentRemotePath[:-1]
+                    self.currentRemotePath += "/" + item.text(0)
+                try:
+                    with self.connection.cd(self.currentRemotePath):
+                        self.RemoteFilesList.clear()
+                        remote_files = self.connection.listdir_attr()
+                        self.createRemoteFilesList(remote_files)
+                except PermissionError as e:
+                    error_message = QMessageBox()
+                    error_message.setWindowTitle("Permission Error")
+                    error_message.setText(str(e))
+                    error_message.setIcon(QMessageBox.Critical)
+                    error_message.exec_()
+
+                    remoteArr = list(os.path.split(self.currentRemotePath))
+                    self.currentRemotePath = remoteArr[0] 
+                except Exception as e:
+                    error_message = QMessageBox()
+                    error_message.setWindowTitle("Remote File System Error")
+                    error_message.setText(str(e))
+                    error_message.setIcon(QMessageBox.Critical)
+                    error_message.exec_()
+
+                    remoteArr = list(os.path.split(self.currentRemotePath))
+                    self.currentRemotePath = remoteArr[0] 
+                    
+    def createRemoteFilesList(self, remote_files):
+        self.RemoteFilesList.addTopLevelItem(QTreeWidgetItem(["..", " ", " "]))   
+        for file in remote_files:
+            fileType = file.st_mode // 10000
+            file_name = file.filename
+            file_size = str(file.st_size)
+            date_modified = datetime.fromtimestamp(file.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+            if fileType == 1:
+                item_file = QTreeWidgetItem()
+                item_file.setIcon(0, self.directoryIcon)
+                item_file.setStatusTip(0, 'd')
+                # for i in range(0, self.RemoteFilesList.columnCount()):
+                #     item_file.setBackground(i, QColor(100,100,150))
+                for n, i in enumerate((file_name, date_modified, file_size)):
+                    item_file.setText(n, i)
+                self.RemoteFilesList.addTopLevelItem(item_file)
+            if fileType == 3:
+                item_file = QTreeWidgetItem()
+                item_file.setIcon(0, self.fileIcon)
+                for n, i in enumerate((file_name, date_modified, file_size)):
+                    item_file.setText(n, i)
+                self.RemoteFilesList.addTopLevelItem(item_file)
+        self.remoteSelectedFile = ""
+        self.currentRemotePathDisplay.setText(self.currentRemotePath)
