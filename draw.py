@@ -66,17 +66,19 @@ def createDeleteButton(self):
     self.deleteButton.setEnabled(True)
     self.deleteButton.show()
 
-def createBottomRightBox(self):        
+def createBottomRightBox(self): 
+    self.currentLocalPathLabel.setText("Current Local Path: ")    
+    self.currentLocalPathLabel.move(800, 140)
+    self.currentLocalPathLabel.resize(130, 20)
+
+    self.currentLocalPathDisplay.setText(self.currentLocalPath)
+    self.currentLocalPathDisplay.move(915, 140)
+    self.currentLocalPathDisplay.resize(550, 20)
     self.LocalFilesList.move(800, 160)
     self.LocalFilesList.resize(650, 570)
     self.LocalFilesList.setColumnCount(3)
     self.LocalFilesList.setHeaderLabels(["Name", "Date Modified", "Size"])
 
-
-    self.LocalFilesLabel = QLabel(self)
-    self.LocalFilesLabel.setText("Local Files Section:\n{file} - {size}") 
-    self.LocalFilesLabel.move(800, 120)
-    self.LocalFilesLabel.adjustSize()
     self.LocalFilesList.itemDoubleClicked.connect(self.localFileSelectionChanged)
     self.LocalFilesList.itemClicked.connect(self.localFileSelectionChangedSingleClick)
 
@@ -87,10 +89,13 @@ def createBottomLeftBox(self):
     self.RemoteFilesList.setHeaderLabels(["Name", "Date Modified", "Size"])
     self.remoteSelectedFile = [] 
 
-    self.RemoteFilesLabel = QLabel(self)
-    self.RemoteFilesLabel.setText("Remote Files Section:\n{file} - {size}")
-    self.RemoteFilesLabel.move(20, 120)
-    self.RemoteFilesLabel.adjustSize()
+    self.currentRemotePathLabel.setText("Current Remote Path: ")    
+    self.currentRemotePathLabel.move(20, 140)
+    self.currentRemotePathLabel.resize(130, 20)
+
+    self.currentRemotePathDisplay.setText(self.currentRemotePath)
+    self.currentRemotePathDisplay.move(150, 140)
+    self.currentRemotePathDisplay.resize(500, 20)
     self.RemoteFilesList.itemDoubleClicked.connect(self.remoteFileSelectionChanged)
     self.RemoteFilesList.itemClicked.connect(self.remoteFileSelectionChangedSingleClick)
 

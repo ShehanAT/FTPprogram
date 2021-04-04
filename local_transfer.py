@@ -87,6 +87,7 @@ def getLocalFileList(self, localPath=None, afterDelete=False):
             i += 1 
         if len(newLocalArr) == 0:
             # self.currentLocalPath is "\"
+            self.currentLocalPathDisplay.setText(self.currentLocalPath)
             return False 
         self.LocalFilesList.clear()
         newLocalPath = newLocalArr[0]
@@ -127,8 +128,6 @@ def getLocalFileList(self, localPath=None, afterDelete=False):
                 for n, i in enumerate((file_name, date_modified, file_size)):
                     item_file.setText(n, i)
                 self.LocalFilesList.addTopLevelItem(item_file)
-                # local_files.append(QTreeWidgetItem([self.currentRemotePath + "\\" + file.name, str(date_modified), str(stat_file.st_size)]))
-                # QListWidgetItem(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.fileIcon)
         else: 
             file_name = file.name 
             file_size = str(stat_file.st_size)
@@ -146,6 +145,7 @@ def getLocalFileList(self, localPath=None, afterDelete=False):
                 for n, i in enumerate((file_name, date_modified, file_size)):
                     item_file.setText(n, i)
                 self.LocalFilesList.addTopLevelItem(item_file)
+    self.currentLocalPathDisplay.setText(self.currentLocalPath)
     return True 
 
 def showFileTransferSuccessMsg(self):
