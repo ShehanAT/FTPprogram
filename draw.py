@@ -69,6 +69,9 @@ def createDeleteButton(self):
 def createBottomRightBox(self):        
     self.LocalFilesList.move(800, 160)
     self.LocalFilesList.resize(650, 570)
+    self.LocalFilesList.setColumnCount(3)
+    self.LocalFilesList.setHeaderLabels(["Name", "Date Modified", "Size"])
+
 
     self.LocalFilesLabel = QLabel(self)
     self.LocalFilesLabel.setText("Local Files Section:\n{file} - {size}") 
@@ -80,6 +83,8 @@ def createBottomRightBox(self):
 def createBottomLeftBox(self):
     self.RemoteFilesList.move(20, 160)
     self.RemoteFilesList.resize(650, 570)
+    self.RemoteFilesList.setColumnCount(3)
+    self.RemoteFilesList.setHeaderLabels(["Name", "Date Modified", "Size"])
     self.remoteSelectedFile = [] 
 
     self.RemoteFilesLabel = QLabel(self)

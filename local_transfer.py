@@ -1,16 +1,17 @@
 from PyQt5.QtWidgets import (QMessageBox)
 from pysftp import paramiko
 import pysftp, os, logging
+from datetime import datetime
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import (QListWidget, 
-    QListWidgetItem)
+    QListWidgetItem, QTreeWidget, QTreeWidgetItem)
 from PyQt5.QtCore import Qt
 
 
 logger = logging.getLogger('FTP-Program')
 def startFTP(self, hostname, username, password, public_key=False):
     self.clearAllData()
-    cnopts = pysftp.CnOpts()
+    cnopts = pysftp.CnOpts(knownhosts='known_hosts')
     cnopts.hostkeys = None
     try: 
         self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
@@ -100,24 +101,51 @@ def getLocalFileList(self, localPath=None, afterDelete=False):
         delete_dir = True 
     else:  
         localFiles = os.scandir("./")
-        print(type(self))
         self.currentLocalPath = os.getcwd() + self.currentLocalPath
-    # create back button 
-    QListWidgetItem("..", self.LocalFilesList).setIcon(self.directoryIcon)
+
+    back_button = QTreeWidgetItem(["..", " ", " "])
+    self.LocalFilesList.addTopLevelItem(back_button)
     for file in localFiles:
         fileType = list(file.stat())[0] // 10000
+        stat_file = os.stat(file)
+        date_modified = datetime.fromtimestamp(os.path.getmtime(file.path)).strftime("%Y-%m-%d %H:%M:%S")
         if previous_dir and base_dir == False and delete_dir == False:
+            # file_name = "\\" + file.name
+            file_name = file.name 
+            file_size = str(stat_file.st_size)
             if fileType == 1: # for folders
-                QListWidgetItem(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.directoryIcon)
-                self.LocalFilesList.findItems(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
+                item_file = QTreeWidgetItem()
+                item_file.setIcon(0, self.directoryIcon)
+                for i in range(0, self.LocalFilesList.columnCount()):
+                    item_file.setBackground(i, QColor(100,100,150))
+                for n, i in enumerate((file_name, date_modified, file_size)):
+                    item_file.setText(n, i)
+                self.LocalFilesList.addTopLevelItem(item_file)
             elif fileType == 3: # for files
-                QListWidgetItem(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.fileIcon)
+                item_file = QTreeWidgetItem()
+                item_file.setIcon(0, self.fileIcon)
+                for n, i in enumerate((file_name, date_modified, file_size)):
+                    item_file.setText(n, i)
+                self.LocalFilesList.addTopLevelItem(item_file)
+                # local_files.append(QTreeWidgetItem([self.currentRemotePath + "\\" + file.name, str(date_modified), str(stat_file.st_size)]))
+                # QListWidgetItem(self.currentLocalPath + "\\" + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.fileIcon)
         else: 
+            file_name = file.name 
+            file_size = str(stat_file.st_size)
             if fileType == 1: # for folders
-                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.directoryIcon)
-                self.LocalFilesList.findItems(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]), Qt.MatchContains)[0].setBackground(QColor(100,100,150))
+                item_file = QTreeWidgetItem()
+                item_file.setIcon(0, self.directoryIcon)
+                for i in range(0, self.LocalFilesList.columnCount()):
+                    item_file.setBackground(i, QColor(100,100,150))
+                for n, i in enumerate((file_name, date_modified, file_size)):
+                    item_file.setText(n, i)
+                self.LocalFilesList.addTopLevelItem(item_file)
             elif fileType == 3: # for files
-                QListWidgetItem(self.currentLocalPath + file.name + " - " + str(list(file.stat())[6]) , self.LocalFilesList).setIcon(self.fileIcon)   
+                item_file = QTreeWidgetItem()
+                item_file.setIcon(0, self.fileIcon)
+                for n, i in enumerate((file_name, date_modified, file_size)):
+                    item_file.setText(n, i)
+                self.LocalFilesList.addTopLevelItem(item_file)
     return True 
 
 def showFileTransferSuccessMsg(self):
