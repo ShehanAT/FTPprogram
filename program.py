@@ -110,7 +110,8 @@ class Program(QMainWindow):
                 for i in newRemoteArr:
                     newRemotePath = newRemotePath + '/'
                     newRemotePath = newRemotePath + i 
-                self.currentRemotePath = newRemotePath + "/"
+                # self.currentRemotePath = newRemotePath + "/"
+                self.currentRemotePath = newRemotePath 
             else:
                 newRemotePath = "/"
                 self.currentRemotePath = newRemotePath 
@@ -120,7 +121,7 @@ class Program(QMainWindow):
             remoteFiles = self.connection.listdir_attr("./")
             remoteDir = self.connection.normalize(".")
             if self.currentRemotePath == "/":
-                self.currentRemotePath = self.connection.pwd + self.currentRemotePath
+                self.currentRemotePath = self.connection.pwd 
         self.currentRemotePathDisplay.setText(self.currentRemotePath)
         self.createRemoteFilesList(remoteFiles)
         return True 

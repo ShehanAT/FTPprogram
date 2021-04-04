@@ -11,7 +11,7 @@ from PyQt5.QtCore import Qt
 logger = logging.getLogger('FTP-Program')
 def startFTP(self, hostname, username, password, public_key=False):
     self.clearAllData()
-    cnopts = pysftp.CnOpts(knownhosts='known_hosts')
+    cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     try: 
         self.connection = pysftp.Connection(host=hostname, username=username, password=password, cnopts=cnopts)
@@ -50,8 +50,8 @@ def localToRemoteTransfer(self, localFile):
         return 
     with self.connection.cd(self.currentRemotePath):
         try:
-            localFileName = localFile.text().split(" -")[0]
-            self.connection.put(localFileName) 
+            localFilePath = self.currentLocalPath + "\\" + localFile.text(0)
+            self.connection.put(localFilePath) 
             updateRemoteFiles(self)
             showFileTransferSuccessMsg(self)
         except IsADirectoryError:
@@ -102,7 +102,7 @@ def getLocalFileList(self, localPath=None, afterDelete=False):
         delete_dir = True 
     else:  
         localFiles = os.scandir("./")
-        self.currentLocalPath = os.getcwd() + self.currentLocalPath
+        self.currentLocalPath = os.getcwd()
 
     back_button = QTreeWidgetItem(["..", " ", " "])
     self.LocalFilesList.addTopLevelItem(back_button)

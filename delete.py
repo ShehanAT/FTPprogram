@@ -38,15 +38,19 @@ def deleteFile(self):
     if self.currentFile != "/":
         deleteFile = self.currentFile
         try:
-            deleteFileName = str(self.currentFile.text())
-            deleteFilePath = deleteFileName.split(" -")[0]
+            deleteFileName = str(self.currentFile.text(0))
+            deleteFilePath = ""
+            if self.currentFileList == "Local": 
+                deleteFilePath = self.currentLocalPath + "\\" + deleteFileName
+            elif self.currentFileList == "Remote":
+                deleteFilePath = self.currentRemotePath + "/" + deleteFileName 
         except AttributeError as e:
             errorMessage = QMessageBox(QMessageBox.Critical, "File not selected", "No file selected to delete! Make sure to select a file first")
             errorMessage.exec_()
             return 
         confirmDelete = QMessageBox.question(self, "Confirm Action", "Are you sure you want to delete this file: " + deleteFilePath, QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
         if confirmDelete == QMessageBox.Yes:
-            if deleteFile.background().color().getRgb() == (100, 100, 150, 255):
+            if deleteFile.background(0).color().getRgb() == (100, 100, 150, 255):
                 errorMessage = QMessageBox(QMessageBox.Critical, "Error", "Cannot delete folders! Only files can be deleted...")
                 errorMessage.exec_()
                 return 
