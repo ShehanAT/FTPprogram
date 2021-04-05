@@ -24,16 +24,16 @@ This program was developed on Windows but can also run on Unix like operating sy
 
 # Screenshots: 
 FTP Client starting screen after FTP login: 
-![FTP Client starting screen after FTP login](https://github.com/ShehanAT/FTPprogram/blob/master/client_starting_screen.png)
+![FTP Client starting screen after FTP login](https://github.com/ShehanAT/FTPprogram/blob/master/screenshots/client_starting_screen.png)
 
 FTP Client Remote to Local file transfer success:
-![FTP Client file transfer success](https://github.com/ShehanAT/FTPprogram/blob/master/remote_to_local_transfer.png)
+![FTP Client file transfer success](https://github.com/ShehanAT/FTPprogram/blob/master/screenshots/remote_to_local_transfer.png)
 
 FTP Client file deletion success:
-![FTP Client file delete](https://github.com/ShehanAT/FTPprogram/blob/master/delete_success.png)
+![FTP Client file delete](https://github.com/ShehanAT/FTPprogram/blob/master/screenshots/delete_success.png)
 
 FTP Client exception thrown:
-![FTP Client exception thrown](https://github.com/ShehanAT/FTPprogram/blob/master/exception_thrown.png)
+![FTP Client exception thrown](https://github.com/ShehanAT/FTPprogram/blob/master/screenshots/exception_thrown.png)
 
 ### Open Source:
 Please feel free to contribute to this project however possible by forking this repo, making changes and initiating pull requests. Thanks!
