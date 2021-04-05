@@ -4,7 +4,7 @@ This is a FTP Client program built using Python and the PyQt5 GUI framework. It 
 It also includes a SFTP server that the user can run locally.
 
 # Purpose:
-I built this application primarily in order to gain experience make small projects using Python and to mentor new Python developers on Python software development. 
+I built this application primarily in order to gain experience making small projects using Python and to mentor new Python developers on Python software development. 
 
 ### Dependencies:
 * Python 3.9.x
@@ -20,7 +20,7 @@ This program was developed on Windows but can also run on Unix like operating sy
 1. Clone repo
 2. open project folder in IDE of your choise 
 3. install PyQt5 and pysftp by running: ```pip install PyQt5``` and ```pip install pysftp```
-4. run ```python3 main.py```
+4. run ```python main.py```
 
 # Screenshots: 
 FTP Client starting screen after FTP login: 
@@ -35,5 +35,5 @@ FTP Client file deletion success:
 FTP Client exception thrown:
 ![FTP Client exception thrown](https://github.com/ShehanAT/FTPprogram/blob/master/screenshots/exception_thrown.png)
 
-### Open Source:
+### Contributing:
 Please feel free to contribute to this project however possible by forking this repo, making changes and initiating pull requests. Thanks!
