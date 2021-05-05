@@ -24,9 +24,9 @@ This program was developed on Windows but can also run on Unix like operating sy
 # Application Usage instructions:
 1. Enter your hostname, username, and password in the corresponding field at the top, where hostname is the server ip address of your remote server(it can be a DigitalOcean droplet)
 2. Click the ```Quick Connect``` button 
-3. Single click a directory to traverse the local & remote file systems
-4. Double click to select file, then press corresponding arrow button to transfer from local to remote or visa versa 
-5. Double click and press Trash icon button to delete selected file
+* Double click a directory to traverse the local & remote file systems
+* Double click to select file, then press corresponding arrow button to transfer from local to remote or visa versa 
+* Double click and press Trash icon button to delete selected file
 
 # Screenshots: 
 FTP Client starting screen after FTP login: 
