@@ -25,7 +25,7 @@ This program was developed on Windows but can also run on Unix like operating sy
 1. Enter your hostname, username, and password in the corresponding field at the top, where hostname is the server ip address of your remote server(it can be a DigitalOcean droplet)
 2. Click the ```Quick Connect``` button 
 * Double click a directory to traverse the local & remote file systems
-* Double click to select file, then press corresponding arrow button to transfer from local to remote or visa versa 
+* Double click to select file, then click corresponding arrow button to transfer from local to remote or visa versa 
 * Double click and press Trash icon button to delete selected file
 
 # Screenshots: 
