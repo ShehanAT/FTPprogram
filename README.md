@@ -19,7 +19,8 @@ This program was developed on Windows but can also run on Unix like operating sy
 # Usage: 
 1. Clone repo
 2. open project folder in IDE of your choice  
-3. run ```python main.py```
+3. install all dependencies via ```pip install -r requirements.txt```
+4. run ```python main.py```
 
 # Screenshots: 
 FTP Client starting screen after FTP login: 

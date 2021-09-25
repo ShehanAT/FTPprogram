@@ -1,5 +1,5 @@
 import os
-from setuptools import setup 
+from setuptools import setup, find_packages 
 
 APP = ['main.py']
 APP_NAME = 'FTP Client Program'
@@ -23,5 +23,6 @@ setup(
     app=APP,
     name=APP_NAME,
     data_files=DATA_FILES,
+    packages=find_packages(),
     setup_requires=['py2app'],
 )
