@@ -22,7 +22,7 @@ cycler==0.10.0
 cytoolz==0.11.0
 decorator==4.4.2
 defusedxml==0.6.0
-Django==3.1.7
+Django==3.1.13
 docutils==0.16
 Flask==1.1.2
 ftputil==5.0.1
