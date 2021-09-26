@@ -34,7 +34,7 @@ imagesize==1.2.0
 ipython-genutils==0.2.0
 itsdangerous==1.1.0
 jdcal==1.4.1
-Jinja2==2.11.2
+Jinja2==2.11.3
 json5==0.9.5
 jupyter==1.0.0
 jupyter-core==4.6.3
