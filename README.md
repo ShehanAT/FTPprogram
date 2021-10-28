@@ -19,8 +19,15 @@ This program was developed on Windows but can also run on Unix like operating sy
 # Local deployment instructions: 
 1. Clone repo
 2. open project folder in IDE of your choice  
-3. install all dependencies via ```pip install -r requirements.txt```
-4. run ```python main.py```
+3. Create and activate a virtual environment by running the following commands: 
+```
+pip install virtualenv
+virtualenv dev_env 
+.\dev_env\Scripts\activate # for Windows users 
+source dev_env/bin/activate # for Linux and Mac users 
+```
+4. install all dependencies via ```pip install -r requirements.txt```
+5. run ```python main.py```
 
 # Application Usage instructions:
 1. Enter your hostname, username, and password in the corresponding field at the top, where hostname is the server ip address of your remote server(it can be a DigitalOcean droplet)
