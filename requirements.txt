@@ -22,7 +22,7 @@ cycler==0.10.0
 cytoolz==0.11.0
 decorator==4.4.2
 defusedxml==0.6.0
-Django==3.1.7
+Django==3.1.13
 docutils==0.16
 Flask==1.1.2
 ftputil==5.0.1
@@ -34,7 +34,7 @@ imagesize==1.2.0
 ipython-genutils==0.2.0
 itsdangerous==1.1.0
 jdcal==1.4.1
-Jinja2==2.11.2
+Jinja2==2.11.3
 json5==0.9.5
 jupyter==1.0.0
 jupyter-core==4.6.3
@@ -43,7 +43,7 @@ pathlib2==2.3.5
 pathtools==0.1.2
 patsy==0.5.1
 pep8==1.7.1
-Pillow==8.2.0
+Pillow==8.3.2
 pkginfo==1.6.1
 pluggy==0.13.1
 ply==3.11
