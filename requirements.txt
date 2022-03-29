@@ -65,6 +65,6 @@ QDarkStyle==2.8.1
 QtPy==1.9.0
 bcrypt==3.2.0 
 cryptography==3.4.8 
-paramiko==2.7.2 
+paramiko==2.10.1 
 pynacl==1.4.0 
 pysftp==0.2.9
